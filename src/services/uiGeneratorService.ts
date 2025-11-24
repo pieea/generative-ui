@@ -93,6 +93,10 @@ export function updateUIFromFeedback(
     newState.mainTemplate = 'profile';
   }
 
+  if (feedbackLower.includes('기사') || feedbackLower.includes('본문') || feedbackLower.includes('article') || feedbackLower.includes('상세 기사') || feedbackLower.includes('전문')) {
+    newState.mainTemplate = 'article';
+  }
+
   // 이미지 표시 변경
   if (feedbackLower.includes('이미지 숨') || feedbackLower.includes('hide image')) {
     newLayout.showImages = false;

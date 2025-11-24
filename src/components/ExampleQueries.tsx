@@ -12,7 +12,7 @@ interface ExampleQueriesProps {
 const exampleQueries: Record<ResultType, { label: string; queries: string[] }> = {
   news: {
     label: '뉴스',
-    queries: ['AI 기술 뉴스', '오늘의 속보', '경제 기사'],
+    queries: ['AI 기술 뉴스', '코스피 증시 전망', '금리 인상 경제'],
   },
   products: {
     label: '상품',

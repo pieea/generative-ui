@@ -64,6 +64,10 @@ export function selectTemplate(
   if (hasImages && resultType === 'images') {
     mainTemplate = 'gallery';
   }
+  // 뉴스 기사가 1개인 경우 (기사 본문 상세) - article 템플릿
+  else if (resultType === 'news' && itemCount === 1) {
+    mainTemplate = 'article';
+  }
   // 뉴스나 혼합 결과가 많은 경우 히어로
   else if ((resultType === 'news' || resultType === 'mixed') && itemCount >= 3) {
     mainTemplate = 'hero';
@@ -109,3 +113,4 @@ export { HeroTemplate } from './HeroTemplate';
 export { GalleryTemplate } from './GalleryTemplate';
 export { TimelineTemplate } from './TimelineTemplate';
 export { ProfileTemplate } from './ProfileTemplate';
+export { ArticleTemplate } from './ArticleTemplate';
