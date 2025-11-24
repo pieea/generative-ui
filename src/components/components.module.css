@@ -411,6 +411,105 @@
   margin: 0 0.25rem;
 }
 
+/* Shopping Controllers */
+.priceRange {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.priceLabel {
+  font-size: 0.875rem;
+  font-weight: 500;
+  color: var(--foreground);
+}
+
+.priceInput {
+  width: 100px;
+  padding: 0.5rem;
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  background: var(--background);
+  color: var(--foreground);
+  font-size: 0.875rem;
+}
+
+.priceInput:focus {
+  border-color: var(--primary);
+  outline: none;
+}
+
+.priceInput::placeholder {
+  color: var(--secondary);
+}
+
+.priceSeparator {
+  color: var(--secondary);
+}
+
+.priceUnit {
+  font-size: 0.875rem;
+  color: var(--secondary);
+}
+
+.ratingFilter {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.ratingLabel {
+  font-size: 0.875rem;
+  font-weight: 500;
+  color: var(--foreground);
+}
+
+.ratingButtons {
+  display: flex;
+  gap: 0.25rem;
+}
+
+.ratingButton {
+  padding: 0.4rem 0.75rem;
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  background: var(--background);
+  color: var(--foreground);
+  font-size: 0.75rem;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.ratingButton:hover {
+  border-color: #fbbf24;
+  color: #fbbf24;
+}
+
+.discountFilter {
+  display: flex;
+  gap: 0.5rem;
+}
+
+.discountButton {
+  color: #ef4444 !important;
+  border-color: #fecaca !important;
+}
+
+.discountButton:hover {
+  background: #fef2f2 !important;
+  border-color: #ef4444 !important;
+}
+
+.freeShippingButton {
+  color: #10b981 !important;
+  border-color: #a7f3d0 !important;
+}
+
+.freeShippingButton:hover {
+  background: #ecfdf5 !important;
+  border-color: #10b981 !important;
+}
+
 /* Responsive */
 @media (max-width: 768px) {
   .controllerBar {
@@ -429,6 +528,30 @@
 
   .dateInput {
     flex: 1;
+  }
+
+  .priceRange {
+    width: 100%;
+    flex-wrap: wrap;
+  }
+
+  .priceInput {
+    flex: 1;
+    min-width: 80px;
+  }
+
+  .ratingFilter {
+    width: 100%;
+    flex-wrap: wrap;
+  }
+
+  .ratingButtons {
+    flex-wrap: wrap;
+  }
+
+  .discountFilter {
+    width: 100%;
+    flex-wrap: wrap;
   }
 
   .feedbackForm {

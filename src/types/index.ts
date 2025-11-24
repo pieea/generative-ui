@@ -23,7 +23,11 @@ export type ControllerType =
   | 'pagination'     // 페이지네이션
   | 'date-range'     // 날짜 범위 선택
   | 'view-toggle'    // 뷰 전환 (리스트/그리드 등)
-  | 'search-refine'; // 검색어 상세화
+  | 'search-refine'  // 검색어 상세화
+  | 'price-range'    // 가격 범위 (쇼핑)
+  | 'brand-filter'   // 브랜드 필터 (쇼핑)
+  | 'rating-filter'  // 평점 필터 (쇼핑)
+  | 'discount-filter'; // 할인/특가 필터 (쇼핑)
 
 // 검색 결과 아이템
 export interface SearchResultItem {

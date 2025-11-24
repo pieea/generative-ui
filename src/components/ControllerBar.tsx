@@ -81,6 +81,73 @@ export function ControllerBar({
             placeholder="검색어 세분화..."
           />
         );
+      case 'price-range':
+        return (
+          <div key={type} className={styles.priceRange}>
+            <span className={styles.priceLabel}>가격</span>
+            <input
+              type="number"
+              className={styles.priceInput}
+              placeholder="최소"
+              min="0"
+            />
+            <span className={styles.priceSeparator}>~</span>
+            <input
+              type="number"
+              className={styles.priceInput}
+              placeholder="최대"
+              min="0"
+            />
+            <span className={styles.priceUnit}>원</span>
+          </div>
+        );
+      case 'brand-filter':
+        return (
+          <select key={type} className={styles.controllerSelect}>
+            <option value="">브랜드 전체</option>
+            <option value="samsung">삼성</option>
+            <option value="lg">LG</option>
+            <option value="apple">Apple</option>
+            <option value="sony">Sony</option>
+            <option value="etc">기타</option>
+          </select>
+        );
+      case 'rating-filter':
+        return (
+          <div key={type} className={styles.ratingFilter}>
+            <span className={styles.ratingLabel}>평점</span>
+            <div className={styles.ratingButtons}>
+              <button className={styles.ratingButton} title="4점 이상">
+                ★★★★☆ 이상
+              </button>
+              <button className={styles.ratingButton} title="3점 이상">
+                ★★★☆☆ 이상
+              </button>
+            </div>
+          </div>
+        );
+      case 'discount-filter':
+        return (
+          <div key={type} className={styles.discountFilter}>
+            <button className={`${styles.controllerButton} ${styles.discountButton}`}>
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                <path d="M19 5L5 19" />
+                <circle cx="6.5" cy="6.5" r="2.5" />
+                <circle cx="17.5" cy="17.5" r="2.5" />
+              </svg>
+              할인 상품
+            </button>
+            <button className={`${styles.controllerButton} ${styles.freeShippingButton}`}>
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                <rect x="1" y="3" width="15" height="13" />
+                <polygon points="16,8 20,8 23,11 23,16 16,16" />
+                <circle cx="5.5" cy="18.5" r="2.5" />
+                <circle cx="18.5" cy="18.5" r="2.5" />
+              </svg>
+              무료배송
+            </button>
+          </div>
+        );
       default:
         return null;
     }

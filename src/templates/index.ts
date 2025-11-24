@@ -15,7 +15,7 @@ export const templateMapping: Record<ResultType, TemplateType> = {
 // 결과 타입에 따른 기본 컨트롤러 추천
 export const controllerMapping: Record<ResultType, ControllerType[]> = {
   news: ['filter', 'sort', 'date-range', 'pagination'],
-  products: ['filter', 'sort', 'view-toggle', 'pagination'],
+  products: ['price-range', 'brand-filter', 'rating-filter', 'discount-filter', 'sort', 'view-toggle', 'pagination'],
   images: ['filter', 'view-toggle', 'pagination'],
   locations: ['filter', 'search-refine'],
   events: ['filter', 'date-range', 'sort'],
