@@ -17,10 +17,24 @@
   font-size: 2.5rem;
   font-weight: 700;
   margin-bottom: 0.5rem;
+}
+
+.titleLink {
+  background: none;
+  border: none;
+  padding: 0;
+  cursor: pointer;
+  font-size: inherit;
+  font-weight: inherit;
   background: linear-gradient(135deg, var(--primary) 0%, #7928ca 100%);
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
   background-clip: text;
+  transition: opacity 0.2s ease;
+}
+
+.titleLink:hover {
+  opacity: 0.8;
 }
 
 .subtitle {

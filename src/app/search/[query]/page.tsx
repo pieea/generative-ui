@@ -47,10 +47,11 @@ export default function SearchPage({ params }: SearchPageProps) {
     <main className={styles.main}>
       <div className={styles.container}>
         <header className={styles.header}>
-          <button onClick={handleBackToHome} className={styles.backButton}>
-            ← 홈으로
-          </button>
-          <h1 className={styles.title}>Generative UI</h1>
+          <h1 className={styles.title}>
+            <button onClick={handleBackToHome} className={styles.titleLink}>
+              Generative UI
+            </button>
+          </h1>
           <p className={styles.subtitle}>
             검색 결과에 맞는 최적의 UI를 자동으로 생성합니다
           </p>
