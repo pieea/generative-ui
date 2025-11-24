@@ -1,0 +1,385 @@
+{
+  "version": "1.0",
+  "description": "Evaluation dataset for Generative UI - Query to UI template mapping",
+  "evaluation_pairs": [
+    {
+      "id": 1,
+      "query": "아이폰 15 vs 갤럭시 S24 비교",
+      "intent": "product_comparison",
+      "expected_ui": {
+        "main_template": "comparison_table",
+        "controllers": ["category_filter"],
+        "layout": "side_by_side",
+        "features": ["spec_highlight", "price_badge"]
+      },
+      "reasoning": "두 제품의 스펙/가격 비교가 필요한 쿼리로, 비교 테이블 UI가 적합"
+    },
+    {
+      "id": 2,
+      "query": "서울 맛집 추천",
+      "intent": "location_based_list",
+      "expected_ui": {
+        "main_template": "card_list_with_map",
+        "controllers": ["location_filter", "category_filter", "sort_options"],
+        "layout": "split_view",
+        "features": ["rating_stars", "distance_badge", "price_range"]
+      },
+      "reasoning": "위치 기반 추천 쿼리로, 지도와 카드 리스트 조합이 적합"
+    },
+    {
+      "id": 3,
+      "query": "비트코인 가격 추이",
+      "intent": "time_series_data",
+      "expected_ui": {
+        "main_template": "line_chart",
+        "controllers": ["date_range_picker", "interval_selector"],
+        "layout": "full_width",
+        "features": ["price_indicator", "trend_arrow", "volume_bar"]
+      },
+      "reasoning": "시계열 데이터 시각화가 필요한 쿼리로, 라인 차트가 적합"
+    },
+    {
+      "id": 4,
+      "query": "한국 역대 대통령 목록",
+      "intent": "timeline_historical",
+      "expected_ui": {
+        "main_template": "timeline",
+        "controllers": ["era_filter"],
+        "layout": "vertical_scroll",
+        "features": ["photo_thumbnail", "term_period", "key_events"]
+      },
+      "reasoning": "역사적 연대기 데이터로, 타임라인 UI가 적합"
+    },
+    {
+      "id": 5,
+      "query": "고양이 사진",
+      "intent": "image_search",
+      "expected_ui": {
+        "main_template": "image_grid",
+        "controllers": ["view_mode_toggle", "size_filter"],
+        "layout": "masonry_grid",
+        "features": ["lightbox", "lazy_loading", "hover_preview"]
+      },
+      "reasoning": "이미지 검색 쿼리로, 이미지 그리드 UI가 적합"
+    },
+    {
+      "id": 6,
+      "query": "파이썬 문법 오류 해결 방법",
+      "intent": "tutorial_qa",
+      "expected_ui": {
+        "main_template": "faq_accordion",
+        "controllers": ["difficulty_filter"],
+        "layout": "single_column",
+        "features": ["code_block", "copy_button", "syntax_highlight"]
+      },
+      "reasoning": "Q&A 형식의 기술 문서로, 아코디언 UI가 적합"
+    },
+    {
+      "id": 7,
+      "query": "오늘 날씨",
+      "intent": "weather_info",
+      "expected_ui": {
+        "main_template": "weather_card",
+        "controllers": ["location_selector", "forecast_range"],
+        "layout": "compact_card",
+        "features": ["temperature_display", "weather_icon", "hourly_forecast"]
+      },
+      "reasoning": "날씨 정보 쿼리로, 전용 날씨 카드 UI가 적합"
+    },
+    {
+      "id": 8,
+      "query": "넷플릭스 인기 영화 순위",
+      "intent": "ranking_list",
+      "expected_ui": {
+        "main_template": "ranked_carousel",
+        "controllers": ["genre_filter", "period_filter"],
+        "layout": "horizontal_scroll",
+        "features": ["rank_badge", "poster_image", "rating_score"]
+      },
+      "reasoning": "순위 기반 콘텐츠 리스트로, 랭킹 캐러셀 UI가 적합"
+    },
+    {
+      "id": 9,
+      "query": "아인슈타인 생애",
+      "intent": "biography",
+      "expected_ui": {
+        "main_template": "profile_detail",
+        "controllers": [],
+        "layout": "hero_with_content",
+        "features": ["profile_image", "key_facts_sidebar", "timeline_section"]
+      },
+      "reasoning": "인물 정보 쿼리로, 프로필 상세 카드 UI가 적합"
+    },
+    {
+      "id": 10,
+      "query": "2024년 공휴일",
+      "intent": "calendar_data",
+      "expected_ui": {
+        "main_template": "calendar_view",
+        "controllers": ["month_navigator", "holiday_type_filter"],
+        "layout": "calendar_grid",
+        "features": ["date_highlight", "holiday_label", "weekend_marker"]
+      },
+      "reasoning": "날짜 기반 데이터로, 캘린더 뷰 UI가 적합"
+    },
+    {
+      "id": 11,
+      "query": "노트북 추천 가성비",
+      "intent": "product_recommendation",
+      "expected_ui": {
+        "main_template": "product_card_list",
+        "controllers": ["price_range_filter", "brand_filter", "spec_filter", "sort_options"],
+        "layout": "grid_view",
+        "features": ["price_badge", "spec_summary", "rating_stars", "deal_tag"]
+      },
+      "reasoning": "제품 추천 쿼리로, 필터 기능이 있는 제품 카드 리스트가 적합"
+    },
+    {
+      "id": 12,
+      "query": "서울에서 부산까지 KTX 시간표",
+      "intent": "schedule_timetable",
+      "expected_ui": {
+        "main_template": "timetable",
+        "controllers": ["date_picker", "time_filter", "train_type_filter"],
+        "layout": "table_view",
+        "features": ["departure_time", "arrival_time", "duration", "price", "seat_availability"]
+      },
+      "reasoning": "시간표 데이터로, 테이블 형식 UI가 적합"
+    },
+    {
+      "id": 13,
+      "query": "삼성전자 주가",
+      "intent": "stock_info",
+      "expected_ui": {
+        "main_template": "stock_chart",
+        "controllers": ["period_selector", "chart_type_toggle"],
+        "layout": "dashboard",
+        "features": ["price_display", "change_indicator", "volume_chart", "key_metrics"]
+      },
+      "reasoning": "주식 정보 쿼리로, 주가 차트와 지표가 포함된 대시보드가 적합"
+    },
+    {
+      "id": 14,
+      "query": "요가 동작 배우기",
+      "intent": "tutorial_video",
+      "expected_ui": {
+        "main_template": "video_tutorial_list",
+        "controllers": ["difficulty_filter", "duration_filter"],
+        "layout": "video_grid",
+        "features": ["video_thumbnail", "duration_badge", "instructor_info", "step_indicator"]
+      },
+      "reasoning": "학습/튜토리얼 쿼리로, 비디오 튜토리얼 리스트가 적합"
+    },
+    {
+      "id": 15,
+      "query": "세계 인구 통계",
+      "intent": "statistics_data",
+      "expected_ui": {
+        "main_template": "data_dashboard",
+        "controllers": ["region_filter", "year_selector"],
+        "layout": "multi_chart",
+        "features": ["bar_chart", "pie_chart", "world_map", "stat_cards"]
+      },
+      "reasoning": "통계 데이터 쿼리로, 다중 차트 대시보드가 적합"
+    },
+    {
+      "id": 16,
+      "query": "치킨 레시피",
+      "intent": "recipe",
+      "expected_ui": {
+        "main_template": "recipe_card",
+        "controllers": ["cooking_time_filter", "difficulty_filter"],
+        "layout": "recipe_detail",
+        "features": ["ingredient_list", "step_by_step", "cooking_time", "serving_size", "nutrition_info"]
+      },
+      "reasoning": "레시피 쿼리로, 재료와 조리법이 포함된 레시피 카드가 적합"
+    },
+    {
+      "id": 17,
+      "query": "서울 지하철 노선도",
+      "intent": "transit_map",
+      "expected_ui": {
+        "main_template": "transit_map",
+        "controllers": ["line_filter", "station_search"],
+        "layout": "interactive_map",
+        "features": ["line_colors", "station_markers", "transfer_info", "zoom_control"]
+      },
+      "reasoning": "교통 노선 쿼리로, 인터랙티브 노선도가 적합"
+    },
+    {
+      "id": 18,
+      "query": "BTS 앨범 목록",
+      "intent": "discography",
+      "expected_ui": {
+        "main_template": "album_grid",
+        "controllers": ["year_filter", "album_type_filter", "sort_options"],
+        "layout": "cover_grid",
+        "features": ["album_cover", "release_date", "track_count", "play_button"]
+      },
+      "reasoning": "음반 목록 쿼리로, 앨범 커버 그리드가 적합"
+    },
+    {
+      "id": 19,
+      "query": "코로나 확진자 현황",
+      "intent": "live_statistics",
+      "expected_ui": {
+        "main_template": "live_dashboard",
+        "controllers": ["region_selector", "date_range"],
+        "layout": "stat_dashboard",
+        "features": ["live_counter", "trend_chart", "region_map", "update_timestamp"]
+      },
+      "reasoning": "실시간 통계 쿼리로, 라이브 대시보드가 적합"
+    },
+    {
+      "id": 20,
+      "query": "영어 단어 뜻 apple",
+      "intent": "dictionary",
+      "expected_ui": {
+        "main_template": "dictionary_card",
+        "controllers": [],
+        "layout": "definition_card",
+        "features": ["pronunciation", "part_of_speech", "definitions", "examples", "audio_button"]
+      },
+      "reasoning": "사전 검색 쿼리로, 단어 정의 카드가 적합"
+    },
+    {
+      "id": 21,
+      "query": "파리 여행 코스 추천",
+      "intent": "travel_itinerary",
+      "expected_ui": {
+        "main_template": "itinerary_planner",
+        "controllers": ["duration_filter", "theme_filter", "budget_filter"],
+        "layout": "day_by_day",
+        "features": ["map_route", "spot_cards", "time_schedule", "cost_estimate"]
+      },
+      "reasoning": "여행 일정 쿼리로, 일정 플래너 UI가 적합"
+    },
+    {
+      "id": 22,
+      "query": "대한민국 행정구역",
+      "intent": "hierarchical_data",
+      "expected_ui": {
+        "main_template": "tree_view",
+        "controllers": ["level_selector", "search_box"],
+        "layout": "collapsible_tree",
+        "features": ["expand_collapse", "region_info", "population_badge"]
+      },
+      "reasoning": "계층적 데이터 쿼리로, 트리 뷰 UI가 적합"
+    },
+    {
+      "id": 23,
+      "query": "오늘 뉴스",
+      "intent": "news_feed",
+      "expected_ui": {
+        "main_template": "news_feed",
+        "controllers": ["category_filter", "source_filter", "date_filter"],
+        "layout": "article_list",
+        "features": ["headline", "thumbnail", "source_badge", "timestamp", "summary"]
+      },
+      "reasoning": "뉴스 쿼리로, 뉴스 피드 리스트가 적합"
+    },
+    {
+      "id": 24,
+      "query": "근처 주유소 가격 비교",
+      "intent": "local_price_comparison",
+      "expected_ui": {
+        "main_template": "price_comparison_map",
+        "controllers": ["fuel_type_filter", "distance_filter", "brand_filter"],
+        "layout": "map_with_list",
+        "features": ["price_marker", "distance_badge", "brand_logo", "navigation_button"]
+      },
+      "reasoning": "위치 기반 가격 비교 쿼리로, 지도와 가격 리스트 조합이 적합"
+    },
+    {
+      "id": 25,
+      "query": "환율 계산 달러 원화",
+      "intent": "calculator",
+      "expected_ui": {
+        "main_template": "currency_converter",
+        "controllers": ["currency_selector", "swap_button"],
+        "layout": "converter_card",
+        "features": ["input_field", "live_rate", "rate_chart", "history_trend"]
+      },
+      "reasoning": "환율 계산 쿼리로, 환율 변환기 UI가 적합"
+    }
+  ],
+  "ui_templates": {
+    "main_templates": [
+      "comparison_table",
+      "card_list_with_map",
+      "line_chart",
+      "timeline",
+      "image_grid",
+      "faq_accordion",
+      "weather_card",
+      "ranked_carousel",
+      "profile_detail",
+      "calendar_view",
+      "product_card_list",
+      "timetable",
+      "stock_chart",
+      "video_tutorial_list",
+      "data_dashboard",
+      "recipe_card",
+      "transit_map",
+      "album_grid",
+      "live_dashboard",
+      "dictionary_card",
+      "itinerary_planner",
+      "tree_view",
+      "news_feed",
+      "price_comparison_map",
+      "currency_converter"
+    ],
+    "controllers": [
+      "date_picker",
+      "date_range_picker",
+      "category_filter",
+      "price_range_filter",
+      "location_filter",
+      "sort_options",
+      "view_mode_toggle",
+      "search_box",
+      "period_selector",
+      "difficulty_filter",
+      "duration_filter"
+    ],
+    "layouts": [
+      "single_column",
+      "split_view",
+      "full_width",
+      "grid_view",
+      "horizontal_scroll",
+      "vertical_scroll",
+      "dashboard",
+      "compact_card"
+    ]
+  },
+  "intent_categories": [
+    "product_comparison",
+    "location_based_list",
+    "time_series_data",
+    "timeline_historical",
+    "image_search",
+    "tutorial_qa",
+    "weather_info",
+    "ranking_list",
+    "biography",
+    "calendar_data",
+    "product_recommendation",
+    "schedule_timetable",
+    "stock_info",
+    "tutorial_video",
+    "statistics_data",
+    "recipe",
+    "transit_map",
+    "discography",
+    "live_statistics",
+    "dictionary",
+    "travel_itinerary",
+    "hierarchical_data",
+    "news_feed",
+    "local_price_comparison",
+    "calculator"
+  ]
+}
