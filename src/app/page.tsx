@@ -3,6 +3,7 @@
 import { useState } from 'react';
 import { SearchBar } from '@/components/SearchBar';
 import { DynamicUIRenderer } from '@/components/DynamicUIRenderer';
+import { ExampleQueries } from '@/components/ExampleQueries';
 import { useGenerativeUI } from '@/hooks/useGenerativeUI';
 import styles from './page.module.css';
 
@@ -30,6 +31,10 @@ export default function Home() {
         </header>
 
         <SearchBar onSearch={handleSearch} isLoading={isLoading} />
+
+        {!uiState && (
+          <ExampleQueries onSelect={handleSearch} isLoading={isLoading} />
+        )}
 
         {error && <div className={styles.error}>{error}</div>}
 
