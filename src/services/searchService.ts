@@ -7,7 +7,14 @@ export function classifyResultType(query: string, items: SearchResultItem[]): Re
   // 키워드 기반 분류
   const typeKeywords: Record<ResultType, string[]> = {
     news: ['뉴스', '기사', '속보', 'news', '보도'],
-    products: ['상품', '제품', '구매', '쇼핑', '가격', 'product', 'buy', 'price'],
+    products: [
+      '상품', '제품', '구매', '쇼핑', '가격', 'product', 'buy', 'price',
+      '추천', '가성비', '비교', '리뷰', '후기', '최저가', '할인',
+      '노트북', '태블릿', '스마트폰', '핸드폰', '휴대폰', '아이폰', '갤럭시', '아이패드',
+      '이어폰', '헤드폰', '에어팟', '버즈', '무선이어폰',
+      '모니터', '키보드', '마우스', 'tv', '냉장고', '세탁기', '에어컨', '청소기',
+      '카메라', '렌즈', '게이밍', '그래픽카드', 'ssd', '메모리'
+    ],
     images: ['이미지', '사진', '그림', 'image', 'photo', 'picture'],
     locations: [
       '장소', '위치', '지도', '맛집', '카페', '음식점', '식당', '레스토랑',
@@ -104,6 +111,19 @@ function generateMockResults(query: string): SearchResultItem[] {
 
   if (isPeopleSearch) {
     return generatePersonResults(query);
+  }
+
+  // 상품/쇼핑 검색 감지
+  const isProductSearch = [
+    '추천', '가성비', '비교', '리뷰', '후기', '최저가', '할인',
+    '노트북', '태블릿', '스마트폰', '핸드폰', '휴대폰', '아이폰', '갤럭시', '아이패드',
+    '이어폰', '헤드폰', '에어팟', '버즈', '무선',
+    '모니터', '키보드', '마우스', 'tv', '냉장고', '세탁기', '에어컨', '청소기',
+    '카메라', '렌즈', '게이밍', '그래픽카드', 'ssd', '메모리'
+  ].some((keyword) => queryLower.includes(keyword));
+
+  if (isProductSearch) {
+    return generateProductResults(query);
   }
 
   const count = Math.floor(Math.random() * 8) + 4;
@@ -391,4 +411,89 @@ function generatePersonResults(query: string): SearchResultItem[] {
       },
     },
   ];
+}
+
+// 상품 검색 결과 생성 (쇼핑 레이아웃용)
+function generateProductResults(query: string): SearchResultItem[] {
+  const queryLower = query.toLowerCase();
+
+  // 카테고리별 상품 데이터
+  const productData: Record<string, { products: string[]; brands: string[]; priceRange: [number, number] }> = {
+    노트북: {
+      products: [
+        '맥북 프로 14인치 M3 Pro', '삼성 갤럭시북4 프로', 'LG 그램 17인치',
+        'ASUS ROG Zephyrus G14', '레노버 씽크패드 X1 Carbon', 'HP 스펙터 x360',
+        '에이서 스위프트 Go 14', '델 XPS 15', '맥북 에어 15인치 M3'
+      ],
+      brands: ['Apple', '삼성', 'LG', 'ASUS', 'Lenovo', 'HP', 'Acer', 'Dell'],
+      priceRange: [800000, 3500000],
+    },
+    태블릿: {
+      products: [
+        '아이패드 프로 12.9인치 M4', '아이패드 에어 11인치', '갤럭시 탭 S9 Ultra',
+        '갤럭시 탭 S9 FE', '아이패드 10세대', '갤럭시 탭 A9+',
+        'Microsoft Surface Pro 9', '레노버 탭 P12 Pro', '샤오미 패드 6'
+      ],
+      brands: ['Apple', '삼성', 'Microsoft', 'Lenovo', 'Xiaomi'],
+      priceRange: [300000, 2000000],
+    },
+    이어폰: {
+      products: [
+        '에어팟 프로 2세대', '갤럭시 버즈3 프로', '소니 WF-1000XM5',
+        '삼성 갤럭시 버즈 FE', '에어팟 4세대', '젠하이저 모멘텀 TW4',
+        'JBL Tour Pro 2', 'Bose QuietComfort Ultra', '픽셀 버즈 Pro'
+      ],
+      brands: ['Apple', '삼성', 'Sony', 'Sennheiser', 'JBL', 'Bose', 'Google'],
+      priceRange: [50000, 450000],
+    },
+    default: {
+      products: [
+        `${query} 프리미엄`, `${query} 스탠다드`, `${query} 프로`,
+        `${query} 라이트`, `${query} 울트라`, `${query} 플러스`,
+        `${query} 에센셜`, `${query} 맥스`, `${query} 미니`
+      ],
+      brands: ['삼성', 'LG', 'Apple', 'Sony', '브랜드A', '브랜드B'],
+      priceRange: [100000, 1000000],
+    },
+  };
+
+  // 쿼리에서 카테고리 추출
+  let category = 'default';
+  if (queryLower.includes('노트북')) category = '노트북';
+  else if (queryLower.includes('태블릿') || queryLower.includes('아이패드')) category = '태블릿';
+  else if (queryLower.includes('이어폰') || queryLower.includes('에어팟') || queryLower.includes('버즈') || queryLower.includes('헤드폰')) category = '이어폰';
+
+  const data = productData[category];
+  const isValueSearch = queryLower.includes('가성비');
+
+  return data.products.slice(0, 8).map((name, index) => {
+    const basePrice = data.priceRange[0] + Math.random() * (data.priceRange[1] - data.priceRange[0]);
+    const hasDiscount = Math.random() > 0.4;
+    const discount = hasDiscount ? Math.floor(Math.random() * 30) + 5 : 0;
+    const originalPrice = Math.floor(basePrice);
+    const price = hasDiscount ? Math.floor(originalPrice * (1 - discount / 100)) : originalPrice;
+
+    return {
+      id: `product-${index + 1}`,
+      title: name,
+      description: `${name}은(는) ${isValueSearch ? '뛰어난 가성비로 인기 있는' : '고성능'} 제품입니다. 다양한 기능과 세련된 디자인으로 많은 사랑을 받고 있습니다.`,
+      url: `https://example.com/product/${index + 1}`,
+      imageUrl: `https://picsum.photos/seed/${name}${index}/400/400`,
+      category: category === 'default' ? '전자제품' : category,
+      tags: isValueSearch
+        ? ['가성비', '인기상품', '추천']
+        : ['프리미엄', '베스트셀러', '신상품'].slice(0, (index % 3) + 1),
+      metadata: {
+        price,
+        originalPrice: hasDiscount ? originalPrice : undefined,
+        discount: hasDiscount ? discount : undefined,
+        rating: Number((4 + Math.random()).toFixed(1)),
+        reviewCount: Math.floor(Math.random() * 5000) + 100,
+        brand: data.brands[index % data.brands.length],
+        freeShipping: Math.random() > 0.3,
+        isNew: Math.random() > 0.8,
+        isBest: Math.random() > 0.7,
+      },
+    };
+  });
 }
