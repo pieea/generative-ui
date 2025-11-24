@@ -9,7 +9,13 @@ export function classifyResultType(query: string, items: SearchResultItem[]): Re
     news: ['뉴스', '기사', '속보', 'news', '보도'],
     products: ['상품', '제품', '구매', '쇼핑', '가격', 'product', 'buy', 'price'],
     images: ['이미지', '사진', '그림', 'image', 'photo', 'picture'],
-    locations: ['장소', '위치', '지도', '맛집', '카페', 'location', 'map', 'place'],
+    locations: [
+      '장소', '위치', '지도', '맛집', '카페', '음식점', '식당', '레스토랑',
+      '관광지', '명소', '볼거리', '여행', '숙소', '호텔', '펜션',
+      '공원', '박물관', '미술관', '서점',
+      '서울', '제주', '강남', '홍대', '이태원', '부산', '경주', '전주', '속초',
+      'location', 'map', 'place'
+    ],
     events: ['이벤트', '행사', '일정', '축제', 'event', 'schedule', 'festival'],
     people: ['인물', '사람', '배우', '가수', 'people', 'person', 'celebrity'],
     documents: ['문서', '파일', '자료', 'document', 'file', 'pdf'],
