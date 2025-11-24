@@ -13,6 +13,7 @@ import {
   ArticleTemplate,
   MapTemplate,
   WeatherTemplate,
+  ShoppingTemplate,
 } from '@/templates';
 import { ControllerBar } from './ControllerBar';
 import { FeedbackInput } from './FeedbackInput';
@@ -37,6 +38,7 @@ const templateComponents: Record<TemplateType, React.ComponentType<any>> = {
   article: ArticleTemplate,    // 기사 본문 (경제/뉴스)
   map: MapTemplate,            // 지도 기반 장소
   weather: WeatherTemplate,    // 날씨 정보
+  shopping: ShoppingTemplate,  // 쇼핑/상품 목록
   table: ListTemplate,         // fallback
   comparison: CarouselTemplate, // 비교는 캐러셀로
   detail: ProfileTemplate,     // 상세는 프로필로

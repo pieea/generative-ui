@@ -10,6 +10,7 @@ export type TemplateType =
   | 'profile'        // 프로필/위키 형태 (인물 정보)
   | 'article'        // 기사 본문 형태 (경제/뉴스 기사)
   | 'weather'        // 날씨 정보 형태
+  | 'shopping'       // 쇼핑/상품 목록 형태
   | 'table'          // 테이블 형태
   | 'comparison'     // 비교 형태
   | 'detail'         // 상세 정보 형태

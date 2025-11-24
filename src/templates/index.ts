@@ -3,7 +3,7 @@ import { TemplateType, ResultType, ControllerType } from '@/types';
 // 템플릿 매핑: 결과 타입에 따른 기본 템플릿 추천
 export const templateMapping: Record<ResultType, TemplateType> = {
   news: 'hero',        // 뉴스는 히어로 레이아웃 (메인 기사 + 사이드)
-  products: 'carousel', // 상품은 캐러셀로 상세히 보기
+  products: 'shopping', // 상품은 쇼핑 전용 레이아웃
   images: 'gallery',    // 이미지는 갤러리 형태
   locations: 'card',    // 장소는 카드 형태
   events: 'timeline',   // 이벤트는 타임라인
@@ -72,13 +72,9 @@ export function selectTemplate(
   else if ((resultType === 'news' || resultType === 'mixed') && itemCount >= 3) {
     mainTemplate = 'hero';
   }
-  // 상품이 적은 경우 캐러셀로 상세히
-  else if (resultType === 'products' && itemCount <= 6) {
-    mainTemplate = 'carousel';
-  }
-  // 상품이 많은 경우 그리드
+  // 상품은 쇼핑 템플릿으로 표시
   else if (resultType === 'products') {
-    mainTemplate = 'grid';
+    mainTemplate = 'shopping';
   }
   // 이벤트는 타임라인
   else if (resultType === 'events') {
@@ -120,3 +116,4 @@ export { ProfileTemplate } from './ProfileTemplate';
 export { ArticleTemplate } from './ArticleTemplate';
 export { MapTemplate } from './MapTemplate';
 export { WeatherTemplate } from './WeatherTemplate';
+export { ShoppingTemplate } from './ShoppingTemplate';
