@@ -260,6 +260,615 @@
   font-size: 0.75rem;
 }
 
+/* Carousel Template */
+.carouselContainer {
+  position: relative;
+  background: var(--card-bg);
+  border: 1px solid var(--border);
+  border-radius: 16px;
+  overflow: hidden;
+}
+
+.carouselMain {
+  display: flex;
+  align-items: center;
+}
+
+.carouselNav {
+  position: absolute;
+  top: 50%;
+  transform: translateY(-50%);
+  width: 48px;
+  height: 48px;
+  border: none;
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.9);
+  color: var(--foreground);
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 10;
+  transition: all 0.2s ease;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
+}
+
+.carouselNav:hover {
+  background: white;
+  transform: translateY(-50%) scale(1.1);
+}
+
+.carouselPrev {
+  left: 1rem;
+}
+
+.carouselNext {
+  right: 1rem;
+}
+
+.carouselSlide {
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+}
+
+.carouselImage {
+  width: 100%;
+  height: 400px;
+  overflow: hidden;
+}
+
+.carouselImage img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.carouselContent {
+  padding: 2rem;
+}
+
+.carouselTitle {
+  font-size: 1.75rem;
+  font-weight: 700;
+  margin-bottom: 1rem;
+}
+
+.carouselTitle a {
+  color: inherit;
+}
+
+.carouselTitle a:hover {
+  color: var(--primary);
+}
+
+.carouselDescription {
+  color: var(--secondary);
+  font-size: 1.1rem;
+  line-height: 1.6;
+  margin-bottom: 1rem;
+}
+
+.carouselMeta {
+  display: flex;
+  gap: 1rem;
+  align-items: center;
+  margin-bottom: 1rem;
+}
+
+.carouselTags {
+  display: flex;
+  gap: 0.5rem;
+  flex-wrap: wrap;
+}
+
+.carouselDots {
+  display: flex;
+  justify-content: center;
+  gap: 0.5rem;
+  padding: 1rem;
+}
+
+.carouselDot {
+  width: 10px;
+  height: 10px;
+  border: none;
+  border-radius: 50%;
+  background: var(--border);
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.carouselDot.active {
+  background: var(--primary);
+  transform: scale(1.2);
+}
+
+.carouselCounter {
+  position: absolute;
+  top: 1rem;
+  right: 1rem;
+  background: rgba(0, 0, 0, 0.6);
+  color: white;
+  padding: 0.5rem 1rem;
+  border-radius: 20px;
+  font-size: 0.85rem;
+}
+
+/* Hero Template */
+.heroContainer {
+  display: grid;
+  grid-template-columns: 2fr 1fr;
+  gap: 1.5rem;
+}
+
+.heroMain {
+  position: relative;
+  border-radius: 16px;
+  overflow: hidden;
+  min-height: 500px;
+  background: var(--card-bg);
+}
+
+.heroImage {
+  position: absolute;
+  inset: 0;
+}
+
+.heroImage img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.heroOverlay {
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(to top, rgba(0, 0, 0, 0.8) 0%, transparent 60%);
+}
+
+.heroContent {
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  padding: 2rem;
+  color: white;
+}
+
+.heroCategory {
+  display: inline-block;
+  background: var(--primary);
+  padding: 0.25rem 0.75rem;
+  border-radius: 4px;
+  font-size: 0.8rem;
+  font-weight: 600;
+  margin-bottom: 1rem;
+}
+
+.heroTitle {
+  font-size: 2rem;
+  font-weight: 700;
+  margin-bottom: 1rem;
+  line-height: 1.3;
+}
+
+.heroTitle a {
+  color: inherit;
+}
+
+.heroTitle a:hover {
+  text-decoration: underline;
+}
+
+.heroDescription {
+  font-size: 1.1rem;
+  line-height: 1.6;
+  opacity: 0.9;
+  margin-bottom: 1rem;
+}
+
+.heroMeta {
+  display: flex;
+  gap: 1rem;
+  align-items: center;
+  flex-wrap: wrap;
+}
+
+.heroTimestamp {
+  opacity: 0.8;
+}
+
+.heroTags {
+  display: flex;
+  gap: 0.5rem;
+}
+
+.heroTag {
+  background: rgba(255, 255, 255, 0.2);
+  padding: 0.25rem 0.75rem;
+  border-radius: 4px;
+  font-size: 0.8rem;
+}
+
+.heroSidebar {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+.sidebarTitle {
+  font-size: 1rem;
+  font-weight: 600;
+  color: var(--secondary);
+  padding-bottom: 0.5rem;
+  border-bottom: 1px solid var(--border);
+}
+
+.sidebarItem {
+  display: flex;
+  gap: 0.75rem;
+  padding: 0.75rem;
+  background: var(--card-bg);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  transition: box-shadow 0.2s ease;
+}
+
+.sidebarItem:hover {
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+}
+
+.sidebarImage {
+  flex-shrink: 0;
+  width: 80px;
+  height: 60px;
+  border-radius: 4px;
+  overflow: hidden;
+}
+
+.sidebarImage img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.sidebarContent {
+  flex: 1;
+  min-width: 0;
+}
+
+.sidebarItemTitle {
+  font-size: 0.9rem;
+  font-weight: 600;
+  margin-bottom: 0.25rem;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+
+.sidebarItemTitle a {
+  color: inherit;
+}
+
+.sidebarItemTitle a:hover {
+  color: var(--primary);
+}
+
+.sidebarTimestamp {
+  font-size: 0.75rem;
+  color: var(--secondary);
+}
+
+/* Gallery Template */
+.galleryContainer {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  grid-auto-rows: 200px;
+  gap: 0.75rem;
+}
+
+.galleryItem {
+  position: relative;
+  border-radius: 8px;
+  overflow: hidden;
+  cursor: pointer;
+  transition: transform 0.2s ease;
+}
+
+.galleryItem:hover {
+  transform: scale(1.02);
+}
+
+.galleryItem:hover .galleryOverlay {
+  opacity: 1;
+}
+
+.gallerySize1 {
+  grid-column: span 2;
+  grid-row: span 2;
+}
+
+.gallerySize2 {
+  grid-column: span 1;
+  grid-row: span 1;
+}
+
+.gallerySize3 {
+  grid-column: span 1;
+  grid-row: span 2;
+}
+
+.gallerySize4 {
+  grid-column: span 2;
+  grid-row: span 1;
+}
+
+.gallerySize5 {
+  grid-column: span 1;
+  grid-row: span 1;
+}
+
+.galleryImage {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.galleryPlaceholder {
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(135deg, var(--primary) 0%, #7928ca 100%);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.galleryPlaceholder span {
+  font-size: 3rem;
+  font-weight: 700;
+  color: white;
+}
+
+.galleryOverlay {
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(to top, rgba(0, 0, 0, 0.8) 0%, transparent 50%);
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-end;
+  padding: 1rem;
+  opacity: 0;
+  transition: opacity 0.2s ease;
+}
+
+.galleryTitle {
+  color: white;
+  font-size: 1rem;
+  font-weight: 600;
+  margin-bottom: 0.25rem;
+}
+
+.galleryCategory {
+  color: rgba(255, 255, 255, 0.8);
+  font-size: 0.8rem;
+}
+
+/* Lightbox */
+.lightbox {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.9);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1000;
+  padding: 2rem;
+}
+
+.lightboxContent {
+  position: relative;
+  max-width: 90vw;
+  max-height: 90vh;
+  background: var(--card-bg);
+  border-radius: 12px;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+}
+
+.lightboxClose {
+  position: absolute;
+  top: 1rem;
+  right: 1rem;
+  width: 40px;
+  height: 40px;
+  border: none;
+  border-radius: 50%;
+  background: rgba(0, 0, 0, 0.5);
+  color: white;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 10;
+  transition: background 0.2s ease;
+}
+
+.lightboxClose:hover {
+  background: rgba(0, 0, 0, 0.7);
+}
+
+.lightboxImage {
+  max-height: 70vh;
+  object-fit: contain;
+}
+
+.lightboxInfo {
+  padding: 1.5rem;
+}
+
+.lightboxTitle {
+  font-size: 1.25rem;
+  font-weight: 600;
+  margin-bottom: 0.75rem;
+}
+
+.lightboxTitle a {
+  color: inherit;
+}
+
+.lightboxTitle a:hover {
+  color: var(--primary);
+}
+
+.lightboxDescription {
+  color: var(--secondary);
+  margin-bottom: 1rem;
+}
+
+.lightboxMeta {
+  display: flex;
+  gap: 1rem;
+  font-size: 0.85rem;
+  color: var(--secondary);
+}
+
+/* Timeline Template */
+.timelineContainer {
+  position: relative;
+  padding: 1rem 0;
+}
+
+.timelineLine {
+  position: absolute;
+  left: 50%;
+  top: 0;
+  bottom: 0;
+  width: 2px;
+  background: var(--border);
+  transform: translateX(-50%);
+}
+
+.timelineItem {
+  position: relative;
+  width: 50%;
+  padding: 1rem 2rem;
+}
+
+.timelineLeft {
+  left: 0;
+  padding-right: 3rem;
+  text-align: right;
+}
+
+.timelineRight {
+  left: 50%;
+  padding-left: 3rem;
+}
+
+.timelineMarker {
+  position: absolute;
+  top: 1.5rem;
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+}
+
+.timelineLeft .timelineMarker {
+  right: -8px;
+  flex-direction: row-reverse;
+}
+
+.timelineRight .timelineMarker {
+  left: -8px;
+}
+
+.timelineDot {
+  width: 16px;
+  height: 16px;
+  background: var(--primary);
+  border: 3px solid var(--background);
+  border-radius: 50%;
+  box-shadow: 0 0 0 2px var(--primary);
+}
+
+.timelineDate {
+  font-size: 0.8rem;
+  font-weight: 600;
+  color: var(--primary);
+  white-space: nowrap;
+}
+
+.timelineCard {
+  background: var(--card-bg);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  overflow: hidden;
+  transition: box-shadow 0.2s ease;
+}
+
+.timelineCard:hover {
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+}
+
+.timelineImage {
+  height: 150px;
+  overflow: hidden;
+}
+
+.timelineImage img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.timelineContent {
+  padding: 1rem;
+}
+
+.timelineLeft .timelineContent {
+  text-align: left;
+}
+
+.timelineCategory {
+  display: inline-block;
+  background: var(--primary);
+  color: white;
+  padding: 0.125rem 0.5rem;
+  border-radius: 4px;
+  font-size: 0.7rem;
+  margin-bottom: 0.5rem;
+}
+
+.timelineTitle {
+  font-size: 1rem;
+  font-weight: 600;
+  margin-bottom: 0.5rem;
+}
+
+.timelineTitle a {
+  color: inherit;
+}
+
+.timelineTitle a:hover {
+  color: var(--primary);
+}
+
+.timelineDescription {
+  color: var(--secondary);
+  font-size: 0.85rem;
+  line-height: 1.5;
+  margin-bottom: 0.5rem;
+}
+
+.timelineTags {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.25rem;
+}
+
 /* Responsive */
 @media (max-width: 768px) {
   .gridContainer,
@@ -278,5 +887,87 @@
   .listItemImage {
     width: 100%;
     height: 160px;
+  }
+
+  /* Carousel responsive */
+  .carouselImage {
+    height: 250px;
+  }
+
+  .carouselTitle {
+    font-size: 1.25rem;
+  }
+
+  .carouselNav {
+    width: 36px;
+    height: 36px;
+  }
+
+  /* Hero responsive */
+  .heroContainer {
+    grid-template-columns: 1fr;
+  }
+
+  .heroMain {
+    min-height: 400px;
+  }
+
+  .heroTitle {
+    font-size: 1.5rem;
+  }
+
+  .heroSidebar {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 0.75rem;
+  }
+
+  .sidebarTitle {
+    grid-column: span 2;
+  }
+
+  /* Gallery responsive */
+  .galleryContainer {
+    grid-template-columns: repeat(2, 1fr);
+    grid-auto-rows: 150px;
+  }
+
+  .gallerySize1,
+  .gallerySize3 {
+    grid-column: span 1;
+    grid-row: span 1;
+  }
+
+  .gallerySize4 {
+    grid-column: span 2;
+  }
+
+  /* Timeline responsive */
+  .timelineLine {
+    left: 20px;
+  }
+
+  .timelineItem {
+    width: 100%;
+    left: 0;
+    padding-left: 50px;
+    padding-right: 1rem;
+  }
+
+  .timelineLeft,
+  .timelineRight {
+    text-align: left;
+    padding-left: 50px;
+  }
+
+  .timelineLeft .timelineMarker,
+  .timelineRight .timelineMarker {
+    left: 12px;
+    right: auto;
+    flex-direction: row;
+  }
+
+  .timelineLeft .timelineContent {
+    text-align: left;
   }
 }

@@ -2,14 +2,14 @@ import { TemplateType, ResultType, ControllerType } from '@/types';
 
 // 템플릿 매핑: 결과 타입에 따른 기본 템플릿 추천
 export const templateMapping: Record<ResultType, TemplateType> = {
-  news: 'list',
-  products: 'grid',
-  images: 'grid',
-  locations: 'map',
-  events: 'timeline',
-  people: 'card',
-  documents: 'list',
-  mixed: 'card',
+  news: 'hero',        // 뉴스는 히어로 레이아웃 (메인 기사 + 사이드)
+  products: 'carousel', // 상품은 캐러셀로 상세히 보기
+  images: 'gallery',    // 이미지는 갤러리 형태
+  locations: 'card',    // 장소는 카드 형태
+  events: 'timeline',   // 이벤트는 타임라인
+  people: 'grid',       // 인물은 그리드
+  documents: 'list',    // 문서는 리스트
+  mixed: 'hero',        // 혼합은 히어로
 };
 
 // 결과 타입에 따른 기본 컨트롤러 추천
@@ -55,26 +55,42 @@ export function selectTemplate(
   itemCount: number,
   hasImages: boolean
 ): TemplateComposition {
-  const baseTemplate = templateMapping[resultType];
   const controllers = controllerMapping[resultType];
 
-  // 이미지가 있으면 grid를 secondary로 추가 가능
-  let secondary: TemplateType | undefined;
-  if (hasImages && baseTemplate !== 'grid') {
-    secondary = 'grid';
-  }
+  // 결과 개수와 타입에 따른 동적 템플릿 선택
+  let mainTemplate: TemplateType;
 
-  // 비교가 필요한 경우 (예: 상품 2-4개)
-  if (resultType === 'products' && itemCount >= 2 && itemCount <= 4) {
-    return {
-      main: 'comparison',
-      controllers: ['filter', 'sort'],
-    };
+  // 이미지가 많은 경우 갤러리
+  if (hasImages && resultType === 'images') {
+    mainTemplate = 'gallery';
+  }
+  // 뉴스나 혼합 결과가 많은 경우 히어로
+  else if ((resultType === 'news' || resultType === 'mixed') && itemCount >= 3) {
+    mainTemplate = 'hero';
+  }
+  // 상품이 적은 경우 캐러셀로 상세히
+  else if (resultType === 'products' && itemCount <= 6) {
+    mainTemplate = 'carousel';
+  }
+  // 상품이 많은 경우 그리드
+  else if (resultType === 'products') {
+    mainTemplate = 'grid';
+  }
+  // 이벤트는 타임라인
+  else if (resultType === 'events') {
+    mainTemplate = 'timeline';
+  }
+  // 인물이 많으면 그리드, 적으면 카드
+  else if (resultType === 'people') {
+    mainTemplate = itemCount > 4 ? 'grid' : 'card';
+  }
+  // 기본값
+  else {
+    mainTemplate = templateMapping[resultType];
   }
 
   return {
-    main: baseTemplate,
-    secondary,
+    main: mainTemplate,
     controllers,
   };
 }
@@ -82,3 +98,7 @@ export function selectTemplate(
 export { ListTemplate } from './ListTemplate';
 export { GridTemplate } from './GridTemplate';
 export { CardTemplate } from './CardTemplate';
+export { CarouselTemplate } from './CarouselTemplate';
+export { HeroTemplate } from './HeroTemplate';
+export { GalleryTemplate } from './GalleryTemplate';
+export { TimelineTemplate } from './TimelineTemplate';

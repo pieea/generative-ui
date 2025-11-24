@@ -1,7 +1,15 @@
 'use client';
 
 import { UIState, TemplateType } from '@/types';
-import { ListTemplate, GridTemplate, CardTemplate } from '@/templates';
+import {
+  ListTemplate,
+  GridTemplate,
+  CardTemplate,
+  CarouselTemplate,
+  HeroTemplate,
+  GalleryTemplate,
+  TimelineTemplate,
+} from '@/templates';
 import { ControllerBar } from './ControllerBar';
 import { FeedbackInput } from './FeedbackInput';
 import styles from './components.module.css';
@@ -17,12 +25,15 @@ const templateComponents: Record<TemplateType, React.ComponentType<any>> = {
   list: ListTemplate,
   grid: GridTemplate,
   card: CardTemplate,
-  table: ListTemplate, // TODO: 별도 구현
-  timeline: ListTemplate, // TODO: 별도 구현
-  comparison: CardTemplate, // TODO: 별도 구현
-  detail: CardTemplate, // TODO: 별도 구현
-  map: CardTemplate, // TODO: 별도 구현
-  chart: CardTemplate, // TODO: 별도 구현
+  carousel: CarouselTemplate,
+  hero: HeroTemplate,
+  gallery: GalleryTemplate,
+  timeline: TimelineTemplate,
+  table: ListTemplate,       // fallback
+  comparison: CarouselTemplate, // 비교는 캐러셀로
+  detail: HeroTemplate,      // 상세는 히어로로
+  map: CardTemplate,         // 지도는 카드로 fallback
+  chart: CardTemplate,       // 차트는 카드로 fallback
 };
 
 export function DynamicUIRenderer({

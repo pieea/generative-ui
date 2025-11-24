@@ -3,8 +3,11 @@ export type TemplateType =
   | 'list'           // 기본 리스트 형태
   | 'grid'           // 그리드 갤러리 형태
   | 'card'           // 카드 레이아웃
-  | 'table'          // 테이블 형태
+  | 'carousel'       // 캐러셀/슬라이더 형태
+  | 'hero'           // 히어로 (큰 이미지 + 사이드바)
+  | 'gallery'        // 갤러리 (메이슨리 스타일)
   | 'timeline'       // 타임라인 형태
+  | 'table'          // 테이블 형태
   | 'comparison'     // 비교 형태
   | 'detail'         // 상세 정보 형태
   | 'map'            // 지도 기반 형태

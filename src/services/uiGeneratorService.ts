@@ -73,6 +73,22 @@ export function updateUIFromFeedback(
     newState.mainTemplate = 'card';
   }
 
+  if (feedbackLower.includes('캐러셀') || feedbackLower.includes('슬라이드') || feedbackLower.includes('carousel') || feedbackLower.includes('slider')) {
+    newState.mainTemplate = 'carousel';
+  }
+
+  if (feedbackLower.includes('갤러리') || feedbackLower.includes('gallery') || feedbackLower.includes('사진첩')) {
+    newState.mainTemplate = 'gallery';
+  }
+
+  if (feedbackLower.includes('타임라인') || feedbackLower.includes('timeline') || feedbackLower.includes('연대기')) {
+    newState.mainTemplate = 'timeline';
+  }
+
+  if (feedbackLower.includes('히어로') || feedbackLower.includes('hero') || feedbackLower.includes('큰 이미지') || feedbackLower.includes('메인')) {
+    newState.mainTemplate = 'hero';
+  }
+
   // 이미지 표시 변경
   if (feedbackLower.includes('이미지 숨') || feedbackLower.includes('hide image')) {
     newLayout.showImages = false;
