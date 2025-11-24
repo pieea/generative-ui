@@ -1,8 +1,9 @@
 import { UIState, SearchResult, UserFeedback, FilterState, TemplateType, LayoutConfig } from '@/types';
-import { selectTemplate, getLayoutByCount } from '@/templates';
+import { getLayoutByCount } from '@/templates';
 import { getCachedUIState, setCachedUIState } from './cacheService';
+import { decideTemplateSync, LLMTemplateDecision } from './llmTemplateService';
 
-// UI 상태 생성
+// UI 상태 생성 (LLM 기반 템플릿 결정)
 export function generateUIState(searchResult: SearchResult): UIState {
   // 캐시 확인
   const cached = getCachedUIState(searchResult.query, searchResult.resultType);
@@ -13,25 +14,24 @@ export function generateUIState(searchResult: SearchResult): UIState {
     };
   }
 
-  const hasImages = searchResult.items.some((item) => item.imageUrl);
-  const templateComposition = selectTemplate(
-    searchResult.resultType,
-    searchResult.items.length,
-    hasImages
+  // LLM 기반 템플릿 결정
+  const llmDecision: LLMTemplateDecision = decideTemplateSync(
+    searchResult.query,
+    searchResult
   );
+
+  console.log('[UI Generator] LLM Decision:', llmDecision.reasoning);
 
   const layout = getLayoutByCount(searchResult.items.length);
-
-  // 날씨 데이터 감지 (metadata에 condition이 있으면 날씨)
-  const isWeatherData = searchResult.items.some(
-    (item) => item.metadata && 'condition' in item.metadata
-  );
+  const hasImages = searchResult.items.some((item) => item.imageUrl);
 
   const uiState: UIState = {
-    mainTemplate: isWeatherData ? 'weather' : templateComposition.main,
-    secondaryTemplate: templateComposition.secondary,
-    controllers: isWeatherData ? [] : templateComposition.controllers,
-    data: searchResult,
+    mainTemplate: llmDecision.template,
+    controllers: llmDecision.controllers,
+    data: {
+      ...searchResult,
+      resultType: llmDecision.resultType, // LLM이 결정한 결과 타입으로 업데이트
+    },
     layout: {
       ...layout,
       showImages: hasImages,
