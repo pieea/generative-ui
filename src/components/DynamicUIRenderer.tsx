@@ -9,6 +9,7 @@ import {
   HeroTemplate,
   GalleryTemplate,
   TimelineTemplate,
+  ProfileTemplate,
 } from '@/templates';
 import { ControllerBar } from './ControllerBar';
 import { FeedbackInput } from './FeedbackInput';
@@ -29,11 +30,12 @@ const templateComponents: Record<TemplateType, React.ComponentType<any>> = {
   hero: HeroTemplate,
   gallery: GalleryTemplate,
   timeline: TimelineTemplate,
-  table: ListTemplate,       // fallback
+  profile: ProfileTemplate,    // 인물 위키/프로필
+  table: ListTemplate,         // fallback
   comparison: CarouselTemplate, // 비교는 캐러셀로
-  detail: HeroTemplate,      // 상세는 히어로로
-  map: CardTemplate,         // 지도는 카드로 fallback
-  chart: CardTemplate,       // 차트는 카드로 fallback
+  detail: ProfileTemplate,     // 상세는 프로필로
+  map: CardTemplate,           // 지도는 카드로 fallback
+  chart: CardTemplate,         // 차트는 카드로 fallback
 };
 
 export function DynamicUIRenderer({

@@ -89,6 +89,10 @@ export function updateUIFromFeedback(
     newState.mainTemplate = 'hero';
   }
 
+  if (feedbackLower.includes('프로필') || feedbackLower.includes('위키') || feedbackLower.includes('profile') || feedbackLower.includes('wiki') || feedbackLower.includes('인물 정보')) {
+    newState.mainTemplate = 'profile';
+  }
+
   // 이미지 표시 변경
   if (feedbackLower.includes('이미지 숨') || feedbackLower.includes('hide image')) {
     newLayout.showImages = false;

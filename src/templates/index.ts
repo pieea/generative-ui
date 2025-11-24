@@ -80,9 +80,15 @@ export function selectTemplate(
   else if (resultType === 'events') {
     mainTemplate = 'timeline';
   }
-  // 인물이 많으면 그리드, 적으면 카드
+  // 인물: 1명이면 프로필(위키), 적으면 카드, 많으면 그리드
   else if (resultType === 'people') {
-    mainTemplate = itemCount > 4 ? 'grid' : 'card';
+    if (itemCount === 1) {
+      mainTemplate = 'profile';
+    } else if (itemCount <= 4) {
+      mainTemplate = 'card';
+    } else {
+      mainTemplate = 'grid';
+    }
   }
   // 기본값
   else {
@@ -102,3 +108,4 @@ export { CarouselTemplate } from './CarouselTemplate';
 export { HeroTemplate } from './HeroTemplate';
 export { GalleryTemplate } from './GalleryTemplate';
 export { TimelineTemplate } from './TimelineTemplate';
+export { ProfileTemplate } from './ProfileTemplate';

@@ -54,6 +54,17 @@ export async function performSearch(query: string): Promise<SearchResult> {
 
 // Mock 데이터 생성 (개발용)
 function generateMockResults(query: string): SearchResultItem[] {
+  const queryLower = query.toLowerCase();
+
+  // 인물 검색 감지 (CEO, 배우, 가수 등)
+  const isPeopleSearch = ['ceo', '배우', '가수', '인물', 'person', '멤버'].some(
+    (keyword) => queryLower.includes(keyword)
+  );
+
+  if (isPeopleSearch) {
+    return generatePersonResults(query);
+  }
+
   const count = Math.floor(Math.random() * 8) + 4;
   const items: SearchResultItem[] = [];
 
@@ -71,4 +82,34 @@ function generateMockResults(query: string): SearchResultItem[] {
   }
 
   return items;
+}
+
+// 인물 검색 결과 생성 (위키 스타일 메타데이터 포함)
+function generatePersonResults(query: string): SearchResultItem[] {
+  // 단일 인물 프로필 반환 (테슬라 CEO 등의 검색에 적합)
+  return [
+    {
+      id: 'person-1',
+      title: query.includes('테슬라') ? 'Elon Musk' : `${query}`,
+      description: `${query}에 대한 상세 정보입니다. 이 인물은 다양한 분야에서 활발하게 활동하고 있으며, 많은 업적을 남겼습니다.`,
+      url: 'https://example.com/wiki/person',
+      imageUrl: `https://picsum.photos/seed/${query}/400/500`,
+      timestamp: new Date().toLocaleDateString('ko-KR'),
+      category: '기업인',
+      tags: ['CEO', '기업가', '혁신가'],
+      metadata: {
+        birthDate: '1971년 6월 28일',
+        birthPlace: '남아프리카공화국 프리토리아',
+        nationality: '미국, 남아프리카공화국, 캐나다',
+        occupation: '기업인, 엔지니어, 투자자',
+        organization: 'Tesla, SpaceX, X Corp',
+        netWorth: '약 2,000억 달러 (2024년 기준)',
+        education: '펜실베이니아 대학교',
+        website: 'https://twitter.com/elonmusk',
+        summary: '일론 머스크는 테슬라의 CEO이자 SpaceX의 창립자로, 전기차와 우주 탐사 분야에서 혁신을 이끌고 있습니다.',
+        career: '1995년 Zip2 창업, 1999년 X.com(이후 PayPal) 창업, 2002년 SpaceX 설립, 2004년 Tesla 투자 및 이사회 의장 취임, 2022년 Twitter 인수',
+        achievements: 'PayPal 공동 창업, Tesla를 세계 최대 전기차 회사로 성장, SpaceX를 통한 민간 우주 비행 실현, Starlink 위성 인터넷 서비스 구축',
+      },
+    },
+  ];
 }

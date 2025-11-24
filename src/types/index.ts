@@ -7,6 +7,7 @@ export type TemplateType =
   | 'hero'           // 히어로 (큰 이미지 + 사이드바)
   | 'gallery'        // 갤러리 (메이슨리 스타일)
   | 'timeline'       // 타임라인 형태
+  | 'profile'        // 프로필/위키 형태 (인물 정보)
   | 'table'          // 테이블 형태
   | 'comparison'     // 비교 형태
   | 'detail'         // 상세 정보 형태
