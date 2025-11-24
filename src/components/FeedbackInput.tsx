@@ -1,0 +1,84 @@
+'use client';
+
+import { useState, FormEvent } from 'react';
+import styles from './components.module.css';
+
+interface FeedbackInputProps {
+  onSubmit: (feedback: string) => void;
+  isLoading?: boolean;
+}
+
+const suggestionExamples = [
+  '날짜로 필터링 하고 싶어',
+  '화면을 크게 보고 싶어',
+  '이미지를 숨기고 싶어',
+  '리스트 형태로 보여줘',
+  '그리드 형태로 보여줘',
+  '최신순으로 정렬해줘',
+];
+
+export function FeedbackInput({ onSubmit, isLoading = false }: FeedbackInputProps) {
+  const [feedback, setFeedback] = useState('');
+  const [showSuggestions, setShowSuggestions] = useState(false);
+
+  const handleSubmit = (e: FormEvent) => {
+    e.preventDefault();
+    if (feedback.trim() && !isLoading) {
+      onSubmit(feedback.trim());
+      setFeedback('');
+    }
+  };
+
+  const handleSuggestionClick = (suggestion: string) => {
+    onSubmit(suggestion);
+    setShowSuggestions(false);
+  };
+
+  return (
+    <div className={styles.feedbackContainer}>
+      <div className={styles.feedbackHeader}>
+        <span className={styles.feedbackLabel}>UI 조정하기</span>
+        <button
+          type="button"
+          className={styles.suggestionToggle}
+          onClick={() => setShowSuggestions(!showSuggestions)}
+        >
+          {showSuggestions ? '접기' : '예시 보기'}
+        </button>
+      </div>
+
+      {showSuggestions && (
+        <div className={styles.suggestions}>
+          {suggestionExamples.map((suggestion, index) => (
+            <button
+              key={index}
+              className={styles.suggestionChip}
+              onClick={() => handleSuggestionClick(suggestion)}
+              disabled={isLoading}
+            >
+              {suggestion}
+            </button>
+          ))}
+        </div>
+      )}
+
+      <form className={styles.feedbackForm} onSubmit={handleSubmit}>
+        <input
+          type="text"
+          value={feedback}
+          onChange={(e) => setFeedback(e.target.value)}
+          placeholder="원하는 UI 변경사항을 입력하세요..."
+          className={styles.feedbackInput}
+          disabled={isLoading}
+        />
+        <button
+          type="submit"
+          className={styles.feedbackButton}
+          disabled={isLoading || !feedback.trim()}
+        >
+          적용
+        </button>
+      </form>
+    </div>
+  );
+}

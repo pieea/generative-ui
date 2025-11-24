@@ -1,0 +1,46 @@
+.main {
+  min-height: 100vh;
+  padding: 2rem;
+}
+
+.container {
+  max-width: 1200px;
+  margin: 0 auto;
+}
+
+.header {
+  text-align: center;
+  margin-bottom: 3rem;
+}
+
+.title {
+  font-size: 2.5rem;
+  font-weight: 700;
+  margin-bottom: 0.5rem;
+  background: linear-gradient(135deg, var(--primary) 0%, #7928ca 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+.subtitle {
+  color: var(--secondary);
+  font-size: 1.1rem;
+}
+
+.error {
+  background-color: #fee2e2;
+  border: 1px solid #ef4444;
+  color: #dc2626;
+  padding: 1rem;
+  border-radius: 8px;
+  margin-top: 1rem;
+}
+
+@media (prefers-color-scheme: dark) {
+  .error {
+    background-color: #450a0a;
+    border-color: #dc2626;
+    color: #fca5a5;
+  }
+}
