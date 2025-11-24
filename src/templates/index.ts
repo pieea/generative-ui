@@ -119,3 +119,4 @@ export { ArticleTemplate } from './ArticleTemplate';
 export { MapTemplate } from './MapTemplate';
 export { WeatherTemplate } from './WeatherTemplate';
 export { ShoppingTemplate } from './ShoppingTemplate';
+export { DualProfileTemplate } from './DualProfileTemplate';

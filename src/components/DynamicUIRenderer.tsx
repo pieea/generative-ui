@@ -10,6 +10,7 @@ import {
   GalleryTemplate,
   TimelineTemplate,
   ProfileTemplate,
+  DualProfileTemplate,
   ArticleTemplate,
   MapTemplate,
   WeatherTemplate,
@@ -35,6 +36,7 @@ const templateComponents: Record<TemplateType, React.ComponentType<any>> = {
   gallery: GalleryTemplate,
   timeline: TimelineTemplate,
   profile: ProfileTemplate,    // 인물 위키/프로필
+  'dual-profile': DualProfileTemplate, // 두 인물 + 뉴스 레이아웃
   article: ArticleTemplate,    // 기사 본문 (경제/뉴스)
   map: MapTemplate,            // 지도 기반 장소
   weather: WeatherTemplate,    // 날씨 정보

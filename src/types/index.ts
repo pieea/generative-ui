@@ -8,6 +8,7 @@ export type TemplateType =
   | 'gallery'        // 갤러리 (메이슨리 스타일)
   | 'timeline'       // 타임라인 형태
   | 'profile'        // 프로필/위키 형태 (인물 정보)
+  | 'dual-profile'   // 두 인물 + 뉴스 레이아웃
   | 'article'        // 기사 본문 형태 (경제/뉴스 기사)
   | 'weather'        // 날씨 정보 형태
   | 'shopping'       // 쇼핑/상품 목록 형태

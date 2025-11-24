@@ -70,18 +70,18 @@ function detectComponentType($comp: cheerio.Cheerio<AnyNode>, $: cheerio.Cheerio
   const sectionTitle = $comp.find('.tit_comp, .tit_head, .tit_g, h3, h2').first().text().toLowerCase();
   const allText = combined + ' ' + sectionTitle;
 
-  // 다음 검색 disp-attr 기반 타입 감지 (우선)
+  // 다음 검색 disp-attr 기반 타입 감지 (가장 정확)
   if (dispAttr === 'PRF') return 'people';  // Profile
   if (dispAttr === 'DNS') return 'news';     // News
-  if (dispAttr === 'SNY') return 'products'; // Shopping
+  if (dispAttr === 'SNY') return 'products'; // Shopping - 반드시 disp-attr로만 감지
   if (dispAttr === 'IIM') return 'images';   // Images
   if (dispAttr === 'VOI') return 'videos';   // Videos
   if (dispAttr === 'TWA' || dispAttr === 'TWD') return 'web';  // 통합웹
 
-  // 텍스트 기반 타입 감지 (폴백)
+  // 텍스트 기반 타입 감지 (폴백, products 제외 - SNY 없으면 쇼핑 아님)
   if (allText.includes('person') || allText.includes('인물') || allText.includes('프로필')) return 'people';
   if (allText.includes('news') || allText.includes('뉴스')) return 'news';
-  if (allText.includes('shop') || allText.includes('쇼핑') || allText.includes('상품')) return 'products';
+  // 쇼핑/상품은 disp-attr="SNY" 에서만 감지 (텍스트에 '쇼핑'이 있어도 무시)
   if (allText.includes('place') || allText.includes('장소') || allText.includes('맛집') || allText.includes('지도')) return 'locations';
   if (allText.includes('weather') || allText.includes('날씨')) return 'weather';
   if (allText.includes('image') || allText.includes('이미지')) return 'images';
@@ -208,6 +208,16 @@ function extractShoppingItems($comp: cheerio.Cheerio<AnyNode>, $: cheerio.Cheeri
     const price = priceMatch ? parseInt(priceMatch) : undefined;
 
     if (title && title.length > 3) {
+      // 실제 평점 추출 (없으면 undefined)
+      const ratingText = $item.find('.score, .star_score, .txt_grade').first().text().trim();
+      const ratingMatch = ratingText.match(/[\d.]+/);
+      const rating = ratingMatch ? parseFloat(ratingMatch[0]) : undefined;
+
+      // 실제 리뷰 수 추출 (없으면 undefined)
+      const reviewText = $item.find('.txt_review, .count, .review_count').first().text().trim();
+      const reviewMatch = reviewText.match(/[\d,]+/);
+      const reviewCount = reviewMatch ? parseInt(reviewMatch[0].replace(/,/g, '')) : undefined;
+
       items.push({
         id: `product-${Date.now()}-${index}`,
         title,
@@ -218,8 +228,8 @@ function extractShoppingItems($comp: cheerio.Cheerio<AnyNode>, $: cheerio.Cheeri
         metadata: {
           price,
           brand: mall,
-          rating: (4 + Math.random()).toFixed(1),
-          reviewCount: Math.floor(Math.random() * 1000) + 10,
+          ...(rating && { rating }),
+          ...(reviewCount && { reviewCount }),
         },
       });
     }
@@ -244,6 +254,10 @@ function extractLocationItems($comp: cheerio.Cheerio<AnyNode>, $: cheerio.Cheeri
     const rating = $item.find('.txt_grade, .rating, .star').first().text().trim();
 
     if (title && title.length > 2) {
+      // 실제 평점 파싱 (없으면 undefined)
+      const ratingMatch = rating.match(/[\d.]+/);
+      const parsedRating = ratingMatch ? parseFloat(ratingMatch[0]) : undefined;
+
       items.push({
         id: `location-${Date.now()}-${index}`,
         title,
@@ -253,8 +267,7 @@ function extractLocationItems($comp: cheerio.Cheerio<AnyNode>, $: cheerio.Cheeri
         category: category || '장소',
         metadata: {
           address,
-          rating: rating || (4 + Math.random()).toFixed(1),
-          reviewCount: Math.floor(Math.random() * 500) + 10,
+          ...(parsedRating && { rating: parsedRating }),
         },
       });
     }

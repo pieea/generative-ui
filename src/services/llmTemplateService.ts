@@ -35,7 +35,8 @@ ${JSON.stringify(itemSummary, null, 2)}
 - map: 지도 기반 (장소, 위치, 맛집, 카페, 관광지)
 - weather: 날씨 정보 (날씨, 기온, 예보)
 - article: 기사 본문 (뉴스, 경제 기사, 상세 본문)
-- profile: 인물 프로필 (위키 스타일 인물 정보)
+- profile: 인물 프로필 (위키 스타일 인물 정보, 단일 인물)
+- dual-profile: 두 인물 비교 레이아웃 (2명 인물 프로필 + 관련 뉴스)
 - hero: 히어로 레이아웃 (메인 콘텐츠 + 사이드바)
 - gallery: 갤러리 (이미지 중심)
 - timeline: 타임라인 (이벤트, 일정)
@@ -92,8 +93,24 @@ function parseQueryIntent(query: string, searchResult: SearchResult): LLMTemplat
   // 인물 정보가 있는 경우
   if (hasBio) {
     // 인물 카테고리 아이템과 뉴스 아이템 분리
-    const personItems = items.filter(i => i.category === '인물');
+    const personItems = items.filter(i => i.category === '인물' || i.metadata?.occupation);
     const newsItems = items.filter(i => i.category === '뉴스' || (i.timestamp && i.metadata?.source));
+
+    // 2명의 서로 다른 인물이 있는 경우 → dual-profile 템플릿
+    if (personItems.length === 2) {
+      // 두 인물이 서로 다른 사람인지 확인 (이름이 다르면 다른 사람)
+      const names = personItems.map(p => p.title);
+      const uniqueNames = new Set(names);
+
+      if (uniqueNames.size === 2) {
+        return {
+          template: 'dual-profile',
+          resultType: 'people',
+          controllers: ['filter', 'sort', 'date-range', 'pagination'],
+          reasoning: `두 인물(${names.join(', ')}) + 관련 뉴스(${newsItems.length}건)로 dual-profile 템플릿 선택`
+        };
+      }
+    }
 
     if (personItems.length > 0 && newsItems.length > 0) {
       // 인물 + 뉴스 복합 → hero 템플릿 (메인: 인물, 사이드: 뉴스)
@@ -105,7 +122,7 @@ function parseQueryIntent(query: string, searchResult: SearchResult): LLMTemplat
       };
     }
 
-    if (items.length === 1) {
+    if (personItems.length === 1) {
       return {
         template: 'profile',
         resultType: 'people',
@@ -248,7 +265,8 @@ const SYSTEM_PROMPT = `당신은 검색 결과에 가장 적합한 UI 템플릿�
 - map: 지도 기반 (장소, 위치, 맛집, 카페, 관광지)
 - weather: 날씨 정보 (날씨, 기온, 예보)
 - article: 기사 본문 (뉴스, 경제 기사, 상세 본문)
-- profile: 인물 프로필 (위키 스타일 인물 정보)
+- profile: 인물 프로필 (위키 스타일 인물 정보, 단일 인물)
+- dual-profile: 두 인물 비교 레이아웃 (2명 인물 프로필 + 관련 뉴스)
 - hero: 히어로 레이아웃 (메인 콘텐츠 + 사이드바, 뉴스/기사 목록)
 - gallery: 갤러리 (이미지 중심)
 - timeline: 타임라인 (이벤트, 일정)
@@ -297,6 +315,41 @@ function parseLLMResponse(content: string): LLMTemplateDecision | null {
   }
 }
 
+// 두 인물 패턴 감지 (dual-profile 후처리)
+function checkDualProfileOverride(
+  searchResult: SearchResult,
+  decision: LLMTemplateDecision
+): LLMTemplateDecision {
+  const items = searchResult.items;
+
+  // 인물 카테고리 아이템 필터링
+  const personItems = items.filter(
+    i => i.category === '인물' || i.metadata?.occupation
+  );
+
+  // 정확히 2명의 서로 다른 인물이 있는 경우
+  if (personItems.length === 2) {
+    const names = personItems.map(p => p.title);
+    const uniqueNames = new Set(names);
+
+    if (uniqueNames.size === 2) {
+      const newsItems = items.filter(
+        i => i.category === '뉴스' || (i.timestamp && i.metadata?.source)
+      );
+
+      console.log(`[LLM Template Service] Dual-profile override: ${names.join(', ')}`);
+      return {
+        template: 'dual-profile',
+        resultType: 'people',
+        controllers: ['filter', 'sort', 'date-range', 'pagination'],
+        reasoning: `두 인물(${names.join(', ')}) + 관련 뉴스(${newsItems.length}건)로 dual-profile 템플릿 선택`
+      };
+    }
+  }
+
+  return decision;
+}
+
 // LLM 기반 템플릿 결정 (메인 함수)
 export async function decidetTemplateWithLLM(
   query: string,
@@ -331,12 +384,15 @@ export async function decidetTemplateWithLLM(
 
     console.log('[LLM Template Service] LLM Response:', content);
 
-    const decision = parseLLMResponse(content);
+    let decision = parseLLMResponse(content);
 
     if (!decision) {
       console.log('[LLM Template Service] Parse failed, using fallback');
       return parseQueryIntent(query, searchResult);
     }
+
+    // 두 인물 패턴 후처리 체크
+    decision = checkDualProfileOverride(searchResult, decision);
 
     console.log('[LLM Template Service] Decision:', decision);
     return decision;
