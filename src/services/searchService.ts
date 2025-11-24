@@ -69,6 +69,18 @@ function generateMockResults(query: string): SearchResultItem[] {
     return generateEconomicArticle(query);
   }
 
+  // 장소/위치 검색 감지
+  const isLocationSearch = [
+    '맛집', '카페', '음식점', '식당', '레스토랑', '베이커리', '브런치',
+    '관광지', '명소', '볼거리', '여행', '숙소', '호텔', '펜션', '게스트하우스',
+    '공원', '박물관', '미술관', '전시관', '서점', '편의점',
+    '제주', '강남', '홍대', '이태원', '부산', '경주', '전주', '속초'
+  ].some((keyword) => queryLower.includes(keyword));
+
+  if (isLocationSearch) {
+    return generateLocationResults(query);
+  }
+
   // 인물 검색 감지 (CEO, 배우, 가수 등)
   const isPeopleSearch = ['ceo', '배우', '가수', '인물', 'person', '멤버'].some(
     (keyword) => queryLower.includes(keyword)
@@ -194,6 +206,41 @@ ${query}와 관련된 시장은 최근 몇 달간 급격한 변화를 겪고 있
   ];
 
   return [mainArticle, ...relatedArticles];
+}
+
+// 장소 검색 결과 생성 (지도 레이아웃용)
+function generateLocationResults(query: string): SearchResultItem[] {
+  const locationNames = query.includes('제주')
+    ? ['오설록 티뮤지엄', '카페 델문도', '몽상드애월', '빈브라더스 제주', '노티드 제주', '마노르블랑 카페', '카페 공백', '봄날 카페']
+    : query.includes('강남')
+    ? ['카페 드 파리', '블루보틀 강남', '테라로사 강남', '프릳츠 강남', '빈브라더스 강남', '커피콩볶는집 강남점', '앤트러사이트']
+    : ['로컬 카페 1', '로컬 카페 2', '로컬 카페 3', '로컬 카페 4', '로컬 카페 5', '로컬 카페 6', '로컬 카페 7'];
+
+  const categories = ['카페', '디저트카페', '브런치카페', '루프탑카페', '뷰맛집', '베이커리카페'];
+  const tags = ['뷰맛집', '디저트', '커피맛집', '브런치', '인스타감성', '조용한', '넓은주차장', '펫프렌들리', '테라스'];
+
+  return locationNames.slice(0, 6).map((name, index) => ({
+    id: `location-${index + 1}`,
+    title: name,
+    description: `${query}에서 인기있는 ${categories[index % categories.length]}입니다. 아늑한 분위기와 맛있는 음료로 많은 사랑을 받고 있습니다.`,
+    url: `https://example.com/place/${index + 1}`,
+    imageUrl: `https://picsum.photos/seed/${query}${index}/400/300`,
+    category: categories[index % categories.length],
+    tags: tags.slice(index % 3, (index % 3) + 3),
+    metadata: {
+      rating: (4 + Math.random()).toFixed(1),
+      reviewCount: Math.floor(Math.random() * 500) + 50,
+      distance: `${(Math.random() * 3 + 0.5).toFixed(1)}km`,
+      address: query.includes('제주')
+        ? `제주특별자치도 제주시 ${['애월읍', '한림읍', '조천읍', '구좌읍'][index % 4]} ${index + 1}길 ${Math.floor(Math.random() * 100) + 1}`
+        : query.includes('강남')
+        ? `서울특별시 강남구 ${['테헤란로', '강남대로', '논현로', '압구정로'][index % 4]} ${Math.floor(Math.random() * 500) + 1}`
+        : `서울특별시 ${['마포구', '종로구', '용산구', '성동구'][index % 4]} ${index + 1}길 ${Math.floor(Math.random() * 100) + 1}`,
+      openHours: `${8 + (index % 3)}:00 - ${21 + (index % 3)}:00`,
+      priceRange: ['₩', '₩₩', '₩₩₩'][index % 3],
+      phone: `02-${Math.floor(Math.random() * 9000) + 1000}-${Math.floor(Math.random() * 9000) + 1000}`,
+    },
+  }));
 }
 
 // 인물 검색 결과 생성 (위키 스타일 메타데이터 포함)

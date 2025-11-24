@@ -1424,6 +1424,365 @@
   color: var(--secondary);
 }
 
+/* Map Template (지도 강조) */
+.mapContainer {
+  display: grid;
+  grid-template-columns: 1fr 400px;
+  gap: 1.5rem;
+  min-height: 600px;
+}
+
+.mapArea {
+  position: relative;
+  border-radius: 12px;
+  overflow: hidden;
+  background: var(--card-bg);
+  border: 1px solid var(--border);
+}
+
+.mapView {
+  position: relative;
+  height: 100%;
+  min-height: 500px;
+}
+
+.mapBackground {
+  position: absolute;
+  inset: 0;
+}
+
+.mapImage {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  filter: saturate(0.8) brightness(0.95);
+}
+
+.mapOverlay {
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(
+    135deg,
+    rgba(100, 150, 200, 0.1) 0%,
+    rgba(50, 100, 150, 0.2) 100%
+  );
+}
+
+.mapMarkers {
+  position: absolute;
+  inset: 0;
+}
+
+.mapMarker {
+  position: absolute;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  background: none;
+  border: none;
+  cursor: pointer;
+  transform: translate(-50%, -100%);
+  transition: transform 0.2s ease;
+}
+
+.mapMarker:hover,
+.mapMarker.active {
+  transform: translate(-50%, -100%) scale(1.2);
+  z-index: 10;
+}
+
+.markerIcon {
+  font-size: 2rem;
+  filter: drop-shadow(0 2px 4px rgba(0, 0, 0, 0.3));
+}
+
+.mapMarker.active .markerIcon {
+  font-size: 2.5rem;
+}
+
+.markerNumber {
+  position: absolute;
+  top: 2px;
+  left: 50%;
+  transform: translateX(-50%);
+  background: var(--primary);
+  color: white;
+  font-size: 0.7rem;
+  font-weight: 700;
+  width: 18px;
+  height: 18px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.mapPreview {
+  position: absolute;
+  bottom: 1rem;
+  left: 1rem;
+  right: 1rem;
+  background: var(--card-bg);
+  border-radius: 12px;
+  overflow: hidden;
+  display: flex;
+  gap: 1rem;
+  padding: 1rem;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.15);
+}
+
+.previewImage {
+  flex-shrink: 0;
+  width: 100px;
+  height: 80px;
+  border-radius: 8px;
+  overflow: hidden;
+}
+
+.previewImage img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.previewContent {
+  flex: 1;
+  min-width: 0;
+}
+
+.previewTitle {
+  font-size: 1.1rem;
+  font-weight: 600;
+  margin-bottom: 0.25rem;
+}
+
+.previewCategory {
+  display: inline-block;
+  background: var(--border);
+  padding: 0.125rem 0.5rem;
+  border-radius: 4px;
+  font-size: 0.75rem;
+  color: var(--secondary);
+  margin-bottom: 0.25rem;
+}
+
+.previewRating {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.ratingStars {
+  color: #fbbf24;
+  font-size: 0.9rem;
+}
+
+.ratingValue {
+  font-weight: 600;
+  font-size: 0.9rem;
+}
+
+.mapControls {
+  position: absolute;
+  top: 1rem;
+  right: 1rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+}
+
+.mapControl {
+  width: 36px;
+  height: 36px;
+  background: var(--card-bg);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  font-size: 1.25rem;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: background 0.2s ease;
+}
+
+.mapControl:hover {
+  background: var(--background);
+}
+
+.mapList {
+  background: var(--card-bg);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+}
+
+.listHeader {
+  padding: 1rem 1.25rem;
+  border-bottom: 1px solid var(--border);
+}
+
+.listTitle {
+  font-size: 1rem;
+  font-weight: 600;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.listCount {
+  font-size: 0.85rem;
+  font-weight: 400;
+  color: var(--secondary);
+}
+
+.locationList {
+  flex: 1;
+  overflow-y: auto;
+  max-height: 550px;
+}
+
+.locationCard {
+  display: flex;
+  gap: 0.75rem;
+  padding: 1rem 1.25rem;
+  border-bottom: 1px solid var(--border);
+  cursor: pointer;
+  transition: background 0.2s ease;
+}
+
+.locationCard:hover,
+.locationCard.selected {
+  background: var(--background);
+}
+
+.locationCard.selected {
+  border-left: 3px solid var(--primary);
+}
+
+.locationNumber {
+  flex-shrink: 0;
+  width: 24px;
+  height: 24px;
+  background: var(--primary);
+  color: white;
+  border-radius: 50%;
+  font-size: 0.8rem;
+  font-weight: 600;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.locationImage {
+  flex-shrink: 0;
+  width: 80px;
+  height: 80px;
+  border-radius: 8px;
+  overflow: hidden;
+}
+
+.locationImage img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.locationInfo {
+  flex: 1;
+  min-width: 0;
+}
+
+.locationName {
+  font-size: 1rem;
+  font-weight: 600;
+  margin-bottom: 0.25rem;
+}
+
+.locationName a {
+  color: inherit;
+}
+
+.locationName a:hover {
+  color: var(--primary);
+}
+
+.locationCategory {
+  display: inline-block;
+  background: var(--border);
+  padding: 0.125rem 0.5rem;
+  border-radius: 4px;
+  font-size: 0.7rem;
+  color: var(--secondary);
+  margin-bottom: 0.25rem;
+}
+
+.locationDesc {
+  color: var(--secondary);
+  font-size: 0.85rem;
+  line-height: 1.4;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+  margin-bottom: 0.5rem;
+}
+
+.locationMeta {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.75rem;
+  font-size: 0.8rem;
+  margin-bottom: 0.25rem;
+}
+
+.locationRating {
+  display: flex;
+  align-items: center;
+  gap: 0.25rem;
+  font-weight: 600;
+}
+
+.star {
+  color: #fbbf24;
+}
+
+.locationReviews,
+.locationDistance {
+  color: var(--secondary);
+}
+
+.locationAddress,
+.locationHours {
+  display: flex;
+  align-items: center;
+  gap: 0.25rem;
+  font-size: 0.8rem;
+  color: var(--secondary);
+  margin-bottom: 0.25rem;
+}
+
+.addressIcon,
+.hoursIcon {
+  font-size: 0.75rem;
+}
+
+.locationTags {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.25rem;
+  margin-top: 0.5rem;
+}
+
+.locationTag {
+  background: var(--border);
+  padding: 0.125rem 0.5rem;
+  border-radius: 4px;
+  font-size: 0.7rem;
+  color: var(--secondary);
+}
+
 /* Responsive */
 @media (max-width: 768px) {
   .gridContainer,
@@ -1577,5 +1936,36 @@
   .relatedArticleImage {
     width: 100%;
     height: 160px;
+  }
+
+  /* Map responsive */
+  .mapContainer {
+    grid-template-columns: 1fr;
+  }
+
+  .mapArea {
+    order: 1;
+  }
+
+  .mapList {
+    order: 2;
+  }
+
+  .mapView {
+    min-height: 350px;
+  }
+
+  .mapPreview {
+    padding: 0.75rem;
+    gap: 0.75rem;
+  }
+
+  .previewImage {
+    width: 70px;
+    height: 60px;
+  }
+
+  .locationList {
+    max-height: 400px;
   }
 }

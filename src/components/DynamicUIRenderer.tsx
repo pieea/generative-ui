@@ -11,6 +11,7 @@ import {
   TimelineTemplate,
   ProfileTemplate,
   ArticleTemplate,
+  MapTemplate,
 } from '@/templates';
 import { ControllerBar } from './ControllerBar';
 import { FeedbackInput } from './FeedbackInput';
@@ -33,10 +34,10 @@ const templateComponents: Record<TemplateType, React.ComponentType<any>> = {
   timeline: TimelineTemplate,
   profile: ProfileTemplate,    // 인물 위키/프로필
   article: ArticleTemplate,    // 기사 본문 (경제/뉴스)
+  map: MapTemplate,            // 지도 기반 장소
   table: ListTemplate,         // fallback
   comparison: CarouselTemplate, // 비교는 캐러셀로
   detail: ProfileTemplate,     // 상세는 프로필로
-  map: CardTemplate,           // 지도는 카드로 fallback
   chart: CardTemplate,         // 차트는 카드로 fallback
 };
 

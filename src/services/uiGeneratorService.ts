@@ -97,6 +97,10 @@ export function updateUIFromFeedback(
     newState.mainTemplate = 'article';
   }
 
+  if (feedbackLower.includes('지도') || feedbackLower.includes('map') || feedbackLower.includes('위치') || feedbackLower.includes('장소 목록')) {
+    newState.mainTemplate = 'map';
+  }
+
   // 이미지 표시 변경
   if (feedbackLower.includes('이미지 숨') || feedbackLower.includes('hide image')) {
     newLayout.showImages = false;

@@ -1,23 +1,17 @@
 'use client';
 
-import { useState } from 'react';
+import { useRouter } from 'next/navigation';
 import { SearchBar } from '@/components/SearchBar';
-import { DynamicUIRenderer } from '@/components/DynamicUIRenderer';
 import { ExampleQueries } from '@/components/ExampleQueries';
-import { useGenerativeUI } from '@/hooks/useGenerativeUI';
 import styles from './page.module.css';
 
 export default function Home() {
-  const [query, setQuery] = useState('');
-  const { uiState, isLoading, error, search, updateUI } = useGenerativeUI();
+  const router = useRouter();
 
-  const handleSearch = async (searchQuery: string) => {
-    setQuery(searchQuery);
-    await search(searchQuery);
-  };
-
-  const handleFeedback = async (feedback: string) => {
-    await updateUI(query, feedback);
+  const handleSearch = (searchQuery: string) => {
+    // 검색어를 URL 경로로 인코딩하여 검색 페이지로 이동
+    const encodedQuery = encodeURIComponent(searchQuery);
+    router.push(`/search/${encodedQuery}`);
   };
 
   return (
@@ -30,21 +24,9 @@ export default function Home() {
           </p>
         </header>
 
-        <SearchBar onSearch={handleSearch} isLoading={isLoading} />
+        <SearchBar onSearch={handleSearch} isLoading={false} />
 
-        {!uiState && (
-          <ExampleQueries onSelect={handleSearch} isLoading={isLoading} />
-        )}
-
-        {error && <div className={styles.error}>{error}</div>}
-
-        {uiState && (
-          <DynamicUIRenderer
-            uiState={uiState}
-            onFeedback={handleFeedback}
-            isLoading={isLoading}
-          />
-        )}
+        <ExampleQueries onSelect={handleSearch} isLoading={false} />
       </div>
     </main>
   );

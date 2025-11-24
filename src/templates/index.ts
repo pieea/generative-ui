@@ -94,6 +94,10 @@ export function selectTemplate(
       mainTemplate = 'grid';
     }
   }
+  // 장소/위치는 지도 템플릿
+  else if (resultType === 'locations') {
+    mainTemplate = 'map';
+  }
   // 기본값
   else {
     mainTemplate = templateMapping[resultType];
@@ -114,3 +118,4 @@ export { GalleryTemplate } from './GalleryTemplate';
 export { TimelineTemplate } from './TimelineTemplate';
 export { ProfileTemplate } from './ProfileTemplate';
 export { ArticleTemplate } from './ArticleTemplate';
+export { MapTemplate } from './MapTemplate';
