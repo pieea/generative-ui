@@ -12,6 +12,7 @@ export type TemplateType =
   | 'article'        // 기사 본문 형태 (경제/뉴스 기사)
   | 'weather'        // 날씨 정보 형태
   | 'shopping'       // 쇼핑/상품 목록 형태
+  | 'exchange-rate'  // 환율 정보 형태
   | 'table'          // 테이블 형태
   | 'comparison'     // 비교 형태
   | 'detail'         // 상세 정보 형태
@@ -82,6 +83,7 @@ export type ResultType =
   | 'people'         // 인물
   | 'documents'      // 문서
   | 'weather'        // 날씨
+  | 'exchange'       // 환율
   | 'mixed';         // 혼합 결과
 
 // UI 상태

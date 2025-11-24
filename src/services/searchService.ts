@@ -14,7 +14,14 @@ export function classifyResultType(query: string, items: SearchResultItem[]): Re
   const hasAddress = items.some((item) => item.metadata && 'address' in item.metadata);
   const hasCondition = items.some((item) => item.metadata && 'condition' in item.metadata);
   const hasBio = items.some((item) => item.metadata && ('birthDate' in item.metadata || 'occupation' in item.metadata));
+  const hasExchangeRate = items.some((item) => item.metadata && 'currencyCode' in item.metadata);
 
+  // 환율 관련 쿼리 키워드 확인
+  const queryLower = query.toLowerCase();
+  const isExchangeQuery = queryLower.includes('환율') || queryLower.includes('달러') ||
+    queryLower.includes('엔화') || queryLower.includes('유로') || queryLower.includes('환전');
+
+  if (hasExchangeRate || isExchangeQuery) return 'exchange';
   if (hasCondition) return 'weather';
   if (hasPrice && hasRating) return 'products';
   if (hasAddress) return 'locations';

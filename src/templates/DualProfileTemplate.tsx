@@ -18,10 +18,6 @@ export function DualProfileTemplate({ data, layout }: TemplateProps) {
   // 최대 2명의 인물만 표시
   const [person1, person2] = personItems.slice(0, 2);
 
-  console.log('[DualProfileTemplate] personItems:', personItems.length, personItems.map(p => p.title));
-  console.log('[DualProfileTemplate] newsItems:', newsItems.length);
-  console.log('[DualProfileTemplate] person1:', person1?.title, 'person2:', person2?.title);
-
   if (!person1) return null;
 
   const renderProfileCard = (person: typeof person1, index: number) => {
@@ -88,12 +84,6 @@ export function DualProfileTemplate({ data, layout }: TemplateProps) {
 
   return (
     <div className={styles.dualProfileContainer}>
-      {/* 디버그 정보 */}
-      <div style={{ background: '#ffeb3b', padding: '10px', marginBottom: '10px', gridColumn: '1 / -1' }}>
-        <strong>DEBUG:</strong> personItems={personItems.length}, newsItems={newsItems.length},
-        person1={person1?.title}, person2={person2?.title}
-      </div>
-
       {/* 왼쪽: 두 인물 프로필 */}
       <div className={styles.dualProfileLeft}>
         {renderProfileCard(person1, 0)}

@@ -34,6 +34,7 @@ ${JSON.stringify(itemSummary, null, 2)}
 - shopping: 상품 목록 (가격, 평점, 할인 정보가 있는 제품)
 - map: 지도 기반 (장소, 위치, 맛집, 카페, 관광지)
 - weather: 날씨 정보 (날씨, 기온, 예보)
+- exchange-rate: 환율 정보 (환율, 달러, 엔화, 유로, 통화 환전)
 - article: 기사 본문 (뉴스, 경제 기사, 상세 본문)
 - profile: 인물 프로필 (위키 스타일 인물 정보, 단일 인물)
 - dual-profile: 두 인물 비교 레이아웃 (2명 인물 프로필 + 관련 뉴스)
@@ -61,8 +62,23 @@ function parseQueryIntent(query: string, searchResult: SearchResult): LLMTemplat
   const hasAddress = items.some(item => item.metadata && 'address' in item.metadata);
   const hasBio = items.some(item => item.metadata && ('birthDate' in item.metadata || 'occupation' in item.metadata));
   const hasBody = items.some(item => item.metadata && 'body' in item.metadata);
+  const hasExchangeRate = items.some(item => item.metadata && 'currencyCode' in item.metadata);
+  const isExchangeQuery = queryLower.includes('환율') || queryLower.includes('달러') || queryLower.includes('엔화') || queryLower.includes('유로');
 
   // 1. 메타데이터 기반 판단 (가장 정확)
+
+  // 환율 데이터가 있거나 환율 관련 쿼리인 경우
+  if (hasExchangeRate || isExchangeQuery || items.some(i => i.category === '환율')) {
+    return {
+      template: 'exchange-rate',
+      resultType: 'exchange',
+      controllers: ['date-range', 'filter'],
+      reasoning: hasExchangeRate
+        ? '환율 데이터(currencyCode)가 감지되어 exchange-rate 템플릿 선택'
+        : '환율 관련 쿼리로 exchange-rate 템플릿 선택'
+    };
+  }
+
   if (hasCondition) {
     return {
       template: 'weather',

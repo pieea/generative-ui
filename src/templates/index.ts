@@ -10,6 +10,7 @@ export const templateMapping: Record<ResultType, TemplateType> = {
   people: 'grid',       // 인물은 그리드
   documents: 'list',    // 문서는 리스트
   weather: 'weather',   // 날씨는 날씨 템플릿
+  exchange: 'exchange-rate', // 환율은 환율 템플릿
   mixed: 'hero',        // 혼합은 히어로
 };
 
@@ -23,6 +24,7 @@ export const controllerMapping: Record<ResultType, ControllerType[]> = {
   people: ['filter', 'sort', 'pagination'],
   documents: ['filter', 'sort', 'date-range', 'pagination'],
   weather: ['date-range'],
+  exchange: ['date-range', 'filter'],  // 환율은 날짜 범위 + 통화 필터
   mixed: ['filter', 'sort', 'view-toggle', 'pagination'],
 };
 
@@ -120,3 +122,4 @@ export { MapTemplate } from './MapTemplate';
 export { WeatherTemplate } from './WeatherTemplate';
 export { ShoppingTemplate } from './ShoppingTemplate';
 export { DualProfileTemplate } from './DualProfileTemplate';
+export { ExchangeRateTemplate } from './ExchangeRateTemplate';

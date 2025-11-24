@@ -18,6 +18,12 @@ interface ProductMetadata {
 export function ShoppingTemplate({ data, layout }: TemplateProps) {
   const columns = layout.columns || 4;
 
+  // 상품 아이템만 필터링 (뉴스, 인물 등 제외)
+  const productItems = data.items.filter(item =>
+    item.category === '상품' ||
+    (item.metadata?.price && typeof item.metadata.price === 'number')
+  );
+
   const getProductMeta = (item: typeof data.items[0]): ProductMetadata => {
     const meta = (item.metadata || {}) as Record<string, string | number | boolean | undefined>;
     return {
@@ -49,12 +55,23 @@ export function ShoppingTemplate({ data, layout }: TemplateProps) {
     );
   };
 
+  // 상품이 없으면 안내 메시지 표시
+  if (productItems.length === 0) {
+    return (
+      <div className={styles.shoppingContainer}>
+        <p style={{ gridColumn: '1 / -1', textAlign: 'center', padding: '2rem', color: 'var(--muted-foreground)' }}>
+          상품 결과가 없습니다.
+        </p>
+      </div>
+    );
+  }
+
   return (
     <div
       className={styles.shoppingContainer}
       style={{ gridTemplateColumns: `repeat(${columns}, 1fr)` }}
     >
-      {data.items.map((item, index) => {
+      {productItems.map((item, index) => {
         const meta = getProductMeta(item);
         const hasDiscount = meta.discount && meta.discount > 0;
 
