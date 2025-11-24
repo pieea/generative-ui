@@ -24,7 +24,7 @@ export function WeatherTemplate({ data }: TemplateProps) {
   const currentWeather = items[0];
   const forecastItems = items.slice(1, 8); // 7일 예보
 
-  const meta = currentWeather.metadata || {};
+  const meta = (currentWeather.metadata || {}) as Record<string, string | number | undefined>;
 
   return (
     <div className={styles.weatherContainer}>

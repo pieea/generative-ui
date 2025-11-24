@@ -14,7 +14,7 @@ export function ProfileTemplate({ data, layout }: TemplateProps) {
   if (!mainProfile) return null;
 
   // 메타데이터에서 프로필 정보 추출
-  const profileInfo = mainProfile.metadata || {};
+  const profileInfo = (mainProfile.metadata || {}) as Record<string, string | number | undefined>;
 
   return (
     <div className={styles.profileContainer}>

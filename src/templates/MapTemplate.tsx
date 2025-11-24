@@ -71,13 +71,13 @@ export function MapTemplate({ data, layout }: TemplateProps) {
                 {selectedItem.category && (
                   <span className={styles.previewCategory}>{selectedItem.category}</span>
                 )}
-                {selectedItem.metadata?.rating && (
+                {Boolean(selectedItem.metadata?.rating) && (
                   <div className={styles.previewRating}>
                     <span className={styles.ratingStars}>
-                      {'★'.repeat(Math.floor(Number(selectedItem.metadata.rating)))}
-                      {'☆'.repeat(5 - Math.floor(Number(selectedItem.metadata.rating)))}
+                      {'★'.repeat(Math.floor(Number(selectedItem.metadata?.rating)))}
+                      {'☆'.repeat(5 - Math.floor(Number(selectedItem.metadata?.rating)))}
                     </span>
-                    <span className={styles.ratingValue}>{String(selectedItem.metadata.rating)}</span>
+                    <span className={styles.ratingValue}>{String(selectedItem.metadata?.rating)}</span>
                   </div>
                 )}
               </div>
@@ -104,7 +104,7 @@ export function MapTemplate({ data, layout }: TemplateProps) {
 
         <div className={styles.locationList}>
           {items.map((item, index) => {
-            const meta = item.metadata || {};
+            const meta = (item.metadata || {}) as Record<string, string | number | undefined>;
 
             return (
               <article

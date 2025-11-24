@@ -14,7 +14,7 @@ export function ArticleTemplate({ data, layout }: TemplateProps) {
   if (!mainArticle) return null;
 
   // 메타데이터에서 기사 정보 추출
-  const articleMeta = mainArticle.metadata || {};
+  const articleMeta = (mainArticle.metadata || {}) as Record<string, string | number | undefined>;
 
   return (
     <div className={styles.articleContainer}>

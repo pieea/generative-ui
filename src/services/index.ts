@@ -3,3 +3,5 @@ export { generateUIState, updateUIFromFeedback, classifyFeedback } from './uiGen
 export { getCachedUIState, setCachedUIState, invalidateCache, getCacheStats } from './cacheService';
 export { rewriteQuery } from './queryRewriteService';
 export type { SearchIntent, ExpandedQuery, RewriteResult } from './queryRewriteService';
+export { analyzeDaumSearch } from './daumSearchService';
+export type { DaumSearchComponent, SearchEngineAnalysis } from './daumSearchService';

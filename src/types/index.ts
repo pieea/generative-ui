@@ -43,6 +43,13 @@ export interface SearchResultItem {
   tags?: string[];
 }
 
+// 확장된 쿼리 정보
+export interface ExpandedQueryInfo {
+  query: string;
+  intent: string;
+  description: string;
+}
+
 // 검색 결과
 export interface SearchResult {
   query: string;
@@ -53,6 +60,14 @@ export interface SearchResult {
     source?: string;
     searchTime?: number;
     suggestions?: string[];
+    llmExtractedCount?: number;  // LLM으로 추출한 아이템 수
+    expandedQueries?: ExpandedQueryInfo[];  // 이중 쿼리 정보
+    analysis?: {
+      primaryIntent: string;
+      secondaryIntent?: string;
+      components: { type: string; title: string; itemCount: number }[];
+      reasoning: string;
+    };
   };
 }
 
@@ -65,6 +80,7 @@ export type ResultType =
   | 'events'         // 이벤트/일정
   | 'people'         // 인물
   | 'documents'      // 문서
+  | 'weather'        // 날씨
   | 'mixed';         // 혼합 결과
 
 // UI 상태

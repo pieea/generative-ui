@@ -19,7 +19,7 @@ export function ShoppingTemplate({ data, layout }: TemplateProps) {
   const columns = layout.columns || 4;
 
   const getProductMeta = (item: typeof data.items[0]): ProductMetadata => {
-    const meta = item.metadata || {};
+    const meta = (item.metadata || {}) as Record<string, string | number | boolean | undefined>;
     return {
       price: typeof meta.price === 'number' ? meta.price : Math.floor(Math.random() * 1500000) + 100000,
       originalPrice: typeof meta.originalPrice === 'number' ? meta.originalPrice : undefined,

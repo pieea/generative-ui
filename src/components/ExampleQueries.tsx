@@ -38,9 +38,13 @@ const exampleQueries: Record<ResultType, { label: string; queries: string[] }> =
     label: '문서',
     queries: ['React 공식 문서', 'API 가이드 자료', 'TypeScript 튜토리얼'],
   },
+  weather: {
+    label: '날씨',
+    queries: ['서울 날씨', '이번 주 날씨', '주말 날씨 예보'],
+  },
   mixed: {
     label: '일반',
-    queries: ['날씨 정보', '환율 조회', '오늘의 운세'],
+    queries: ['환율 조회', '오늘의 운세', '주식 시세'],
   },
 };
 

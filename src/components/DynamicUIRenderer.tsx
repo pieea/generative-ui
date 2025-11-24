@@ -54,16 +54,32 @@ export function DynamicUIRenderer({
 
   const MainTemplateComponent = templateComponents[mainTemplate];
 
-  // rewrite 결과 추출
-  const rewriteResult = data.metadata?.rewriteResult as {
-    originalQuery: string;
-    expanded: boolean;
-    queries: { query: string; intent: string; description: string }[];
+  // 검색 분석 결과 추출
+  const analysis = data.metadata?.analysis as {
+    primaryIntent: string;
+    secondaryIntent?: string;
+    components: { type: string; title: string; itemCount: number }[];
+    reasoning: string;
   } | undefined;
 
+  // 이중 쿼리 정보 추출
+  const expandedQueries = data.metadata?.expandedQueries as {
+    query: string;
+    intent: string;
+    description: string;
+  }[] | undefined;
+
+  // LLM 추출 정보
+  const llmExtractedCount = data.metadata?.llmExtractedCount || 0;
+
   // 디버그 문자열 생성
-  const debugInfo = rewriteResult
-    ? `[${rewriteResult.expanded ? '확장' : '단일'}] ${rewriteResult.queries.map(q => `"${q.query}"(${q.intent})`).join(' + ')} → 템플릿: ${mainTemplate}`
+  const isMultiQuery = expandedQueries && expandedQueries.length > 1;
+  const queryInfo = isMultiQuery
+    ? `[이중쿼리] ${expandedQueries.map(q => `"${q.query}"(${q.intent})`).join(' + ')}`
+    : '[단일쿼리]';
+
+  const debugInfo = analysis
+    ? `${queryInfo} → ${analysis.components.map(c => `[${c.type}]${c.title}(${c.itemCount}건)`).join(' + ')} → ${analysis.primaryIntent}${analysis.secondaryIntent ? '+' + analysis.secondaryIntent : ''} | LLM추출: ${llmExtractedCount}건 → 템플릿: ${mainTemplate}`
     : `템플릿: ${mainTemplate}`;
 
   return (
@@ -79,7 +95,31 @@ export function DynamicUIRenderer({
 
       {/* 디버그: 쿼리 분석 결과 */}
       <div className={styles.debugInfo}>
-        {debugInfo}
+        <span className={styles.debugText}>{debugInfo}</span>
+        <div className={styles.debugLinks}>
+          {isMultiQuery ? (
+            expandedQueries.map((q, i) => (
+              <a
+                key={i}
+                href={`https://search.daum.net/search?w=tot&q=${encodeURIComponent(q.query)}`}
+                target="_blank"
+                rel="noopener noreferrer"
+                className={styles.daumSearchLink}
+              >
+                {q.query}
+              </a>
+            ))
+          ) : (
+            <a
+              href={`https://search.daum.net/search?w=tot&q=${encodeURIComponent(data.query)}`}
+              target="_blank"
+              rel="noopener noreferrer"
+              className={styles.daumSearchLink}
+            >
+              다음검색
+            </a>
+          )}
+        </div>
       </div>
 
       {/* 컨트롤러 바 */}

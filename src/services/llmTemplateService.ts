@@ -89,12 +89,37 @@ function parseQueryIntent(query: string, searchResult: SearchResult): LLMTemplat
     };
   }
 
-  if (hasBio && items.length === 1) {
+  // 인물 정보가 있는 경우
+  if (hasBio) {
+    // 인물 카테고리 아이템과 뉴스 아이템 분리
+    const personItems = items.filter(i => i.category === '인물');
+    const newsItems = items.filter(i => i.category === '뉴스' || (i.timestamp && i.metadata?.source));
+
+    if (personItems.length > 0 && newsItems.length > 0) {
+      // 인물 + 뉴스 복합 → hero 템플릿 (메인: 인물, 사이드: 뉴스)
+      return {
+        template: 'hero',
+        resultType: 'people',
+        controllers: ['filter', 'sort', 'date-range', 'pagination'],
+        reasoning: `인물 프로필(${personItems.length}건) + 관련 뉴스(${newsItems.length}건) 복합 검색으로 hero 템플릿 선택`
+      };
+    }
+
+    if (items.length === 1) {
+      return {
+        template: 'profile',
+        resultType: 'people',
+        controllers: ['filter', 'sort', 'pagination'],
+        reasoning: '단일 인물 정보(birthDate, occupation)가 감지되어 profile 템플릿 선택'
+      };
+    }
+
+    // 인물 여러 명
     return {
-      template: 'profile',
+      template: 'grid',
       resultType: 'people',
       controllers: ['filter', 'sort', 'pagination'],
-      reasoning: '인물 정보(birthDate, occupation)가 감지되어 profile 템플릿 선택'
+      reasoning: '여러 인물 정보가 감지되어 grid 템플릿 선택'
     };
   }
 

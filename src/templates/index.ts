@@ -9,6 +9,7 @@ export const templateMapping: Record<ResultType, TemplateType> = {
   events: 'timeline',   // 이벤트는 타임라인
   people: 'grid',       // 인물은 그리드
   documents: 'list',    // 문서는 리스트
+  weather: 'weather',   // 날씨는 날씨 템플릿
   mixed: 'hero',        // 혼합은 히어로
 };
 
@@ -21,6 +22,7 @@ export const controllerMapping: Record<ResultType, ControllerType[]> = {
   events: ['filter', 'date-range', 'sort'],
   people: ['filter', 'sort', 'pagination'],
   documents: ['filter', 'sort', 'date-range', 'pagination'],
+  weather: ['date-range'],
   mixed: ['filter', 'sort', 'view-toggle', 'pagination'],
 };
 
