@@ -69,12 +69,22 @@ function generateMockResults(query: string): SearchResultItem[] {
     return generateEconomicArticle(query);
   }
 
+  // 날씨 검색 감지
+  const isWeatherSearch = [
+    '날씨', '기온', '온도', '비', '눈', '맑음', '흐림', 'weather',
+    '일기예보', '기상', '미세먼지', '자외선', '강수', '습도'
+  ].some((keyword) => queryLower.includes(keyword));
+
+  if (isWeatherSearch) {
+    return generateWeatherResults(query);
+  }
+
   // 장소/위치 검색 감지
   const isLocationSearch = [
     '맛집', '카페', '음식점', '식당', '레스토랑', '베이커리', '브런치',
     '관광지', '명소', '볼거리', '여행', '숙소', '호텔', '펜션', '게스트하우스',
     '공원', '박물관', '미술관', '전시관', '서점', '편의점',
-    '제주', '강남', '홍대', '이태원', '부산', '경주', '전주', '속초'
+    '서울', '제주', '강남', '홍대', '이태원', '부산', '경주', '전주', '속초', '인천', '대구', '광주'
   ].some((keyword) => queryLower.includes(keyword));
 
   if (isLocationSearch) {
@@ -210,37 +220,141 @@ ${query}와 관련된 시장은 최근 몇 달간 급격한 변화를 겪고 있
 
 // 장소 검색 결과 생성 (지도 레이아웃용)
 function generateLocationResults(query: string): SearchResultItem[] {
-  const locationNames = query.includes('제주')
-    ? ['오설록 티뮤지엄', '카페 델문도', '몽상드애월', '빈브라더스 제주', '노티드 제주', '마노르블랑 카페', '카페 공백', '봄날 카페']
-    : query.includes('강남')
-    ? ['카페 드 파리', '블루보틀 강남', '테라로사 강남', '프릳츠 강남', '빈브라더스 강남', '커피콩볶는집 강남점', '앤트러사이트']
-    : ['로컬 카페 1', '로컬 카페 2', '로컬 카페 3', '로컬 카페 4', '로컬 카페 5', '로컬 카페 6', '로컬 카페 7'];
+  const queryLower = query.toLowerCase();
+  const isTourist = queryLower.includes('관광') || queryLower.includes('명소') || queryLower.includes('볼거리');
 
-  const categories = ['카페', '디저트카페', '브런치카페', '루프탑카페', '뷰맛집', '베이커리카페'];
-  const tags = ['뷰맛집', '디저트', '커피맛집', '브런치', '인스타감성', '조용한', '넓은주차장', '펫프렌들리', '테라스'];
+  // 서울 관광지
+  const seoulTouristSpots = ['경복궁', 'N서울타워', '북촌한옥마을', '광화문광장', '청계천', '인사동', '명동', '동대문디자인플라자'];
+  // 제주 카페
+  const jejuCafes = ['오설록 티뮤지엄', '카페 델문도', '몽상드애월', '빈브라더스 제주', '노티드 제주', '마노르블랑 카페', '카페 공백', '봄날 카페'];
+  // 강남 카페
+  const gangnamCafes = ['카페 드 파리', '블루보틀 강남', '테라로사 강남', '프릳츠 강남', '빈브라더스 강남', '커피콩볶는집 강남점', '앤트러사이트'];
+  // 기본 장소
+  const defaultPlaces = ['로컬 장소 1', '로컬 장소 2', '로컬 장소 3', '로컬 장소 4', '로컬 장소 5', '로컬 장소 6'];
+
+  let locationNames: string[];
+  let categories: string[];
+  let tags: string[];
+
+  if (queryLower.includes('서울') && isTourist) {
+    locationNames = seoulTouristSpots;
+    categories = ['고궁', '랜드마크', '전통마을', '광장', '산책로', '문화거리', '쇼핑', '건축'];
+    tags = ['역사', '포토스팟', '야경', '전통', '문화', 'K-관광', '가족여행', '데이트'];
+  } else if (queryLower.includes('제주')) {
+    locationNames = jejuCafes;
+    categories = ['카페', '디저트카페', '브런치카페', '루프탑카페', '뷰맛집', '베이커리카페'];
+    tags = ['뷰맛집', '디저트', '커피맛집', '브런치', '인스타감성', '조용한', '넓은주차장', '펫프렌들리'];
+  } else if (queryLower.includes('강남')) {
+    locationNames = gangnamCafes;
+    categories = ['카페', '디저트카페', '브런치카페', '루프탑카페', '뷰맛집', '베이커리카페'];
+    tags = ['트렌디', '커피맛집', '디저트', '모임', '데이트', '작업하기좋은'];
+  } else {
+    locationNames = defaultPlaces;
+    categories = ['카페', '맛집', '관광지', '명소', '공원', '문화시설'];
+    tags = ['인기', '추천', '가볼만한', '숨은명소', '포토스팟', '가족'];
+  }
+
+  // 서울 관광지 주소
+  const seoulAddresses = [
+    '서울특별시 종로구 사직로 161',
+    '서울특별시 용산구 남산공원길 105',
+    '서울특별시 종로구 계동길 37',
+    '서울특별시 종로구 세종대로 172',
+    '서울특별시 종로구 청계천로',
+    '서울특별시 종로구 인사동길',
+    '서울특별시 중구 명동길',
+    '서울특별시 중구 을지로 281',
+  ];
 
   return locationNames.slice(0, 6).map((name, index) => ({
     id: `location-${index + 1}`,
     title: name,
-    description: `${query}에서 인기있는 ${categories[index % categories.length]}입니다. 아늑한 분위기와 맛있는 음료로 많은 사랑을 받고 있습니다.`,
+    description: isTourist
+      ? `${name}은(는) ${query}의 대표적인 ${categories[index % categories.length]}입니다. 많은 관광객들이 찾는 인기 명소입니다.`
+      : `${query}에서 인기있는 ${categories[index % categories.length]}입니다. 아늑한 분위기와 맛있는 음료로 많은 사랑을 받고 있습니다.`,
     url: `https://example.com/place/${index + 1}`,
-    imageUrl: `https://picsum.photos/seed/${query}${index}/400/300`,
+    imageUrl: `https://picsum.photos/seed/${name}${index}/400/300`,
     category: categories[index % categories.length],
     tags: tags.slice(index % 3, (index % 3) + 3),
     metadata: {
       rating: (4 + Math.random()).toFixed(1),
       reviewCount: Math.floor(Math.random() * 500) + 50,
       distance: `${(Math.random() * 3 + 0.5).toFixed(1)}km`,
-      address: query.includes('제주')
+      address: queryLower.includes('서울') && isTourist
+        ? seoulAddresses[index % seoulAddresses.length]
+        : queryLower.includes('제주')
         ? `제주특별자치도 제주시 ${['애월읍', '한림읍', '조천읍', '구좌읍'][index % 4]} ${index + 1}길 ${Math.floor(Math.random() * 100) + 1}`
-        : query.includes('강남')
+        : queryLower.includes('강남')
         ? `서울특별시 강남구 ${['테헤란로', '강남대로', '논현로', '압구정로'][index % 4]} ${Math.floor(Math.random() * 500) + 1}`
         : `서울특별시 ${['마포구', '종로구', '용산구', '성동구'][index % 4]} ${index + 1}길 ${Math.floor(Math.random() * 100) + 1}`,
-      openHours: `${8 + (index % 3)}:00 - ${21 + (index % 3)}:00`,
-      priceRange: ['₩', '₩₩', '₩₩₩'][index % 3],
+      openHours: isTourist ? '09:00 - 18:00 (계절별 상이)' : `${8 + (index % 3)}:00 - ${21 + (index % 3)}:00`,
+      priceRange: isTourist ? (index < 2 ? '₩₩' : '무료') : ['₩', '₩₩', '₩₩₩'][index % 3],
       phone: `02-${Math.floor(Math.random() * 9000) + 1000}-${Math.floor(Math.random() * 9000) + 1000}`,
     },
   }));
+}
+
+// 날씨 검색 결과 생성
+function generateWeatherResults(query: string): SearchResultItem[] {
+  const now = new Date();
+  const days = ['일', '월', '화', '수', '목', '금', '토'];
+  const conditions = ['sunny', 'cloudy', 'partlyCloudy', 'rainy', 'snowy'];
+  const conditionNames = ['맑음', '흐림', '구름조금', '비', '눈'];
+
+  // 지역명 추출
+  const locations = ['서울', '부산', '제주', '대구', '인천', '광주', '대전'];
+  const foundLocation = locations.find(loc => query.includes(loc)) || '서울';
+
+  // 현재 날씨
+  const currentConditionIndex = Math.floor(Math.random() * 3);
+  const currentWeather: SearchResultItem = {
+    id: 'weather-current',
+    title: conditionNames[currentConditionIndex],
+    timestamp: now.toLocaleString('ko-KR', { hour: '2-digit', minute: '2-digit' }) + ' 기준',
+    category: '날씨',
+    metadata: {
+      location: foundLocation,
+      condition: conditions[currentConditionIndex],
+      temperature: String(Math.floor(Math.random() * 15) + 10),
+      humidity: String(Math.floor(Math.random() * 40) + 40),
+      windSpeed: String((Math.random() * 5 + 1).toFixed(1)),
+      feelsLike: String(Math.floor(Math.random() * 15) + 8),
+      precipitation: String(Math.floor(Math.random() * 30)),
+      airQuality: true,
+      pm10: String(Math.floor(Math.random() * 50) + 20),
+      pm10Status: '보통',
+      pm10Level: 'moderate',
+      pm25: String(Math.floor(Math.random() * 30) + 10),
+      pm25Status: '좋음',
+      pm25Level: 'good',
+      hourlyForecast: Array.from({ length: 8 }, (_, i) => ({
+        time: `${(now.getHours() + i + 1) % 24}시`,
+        temp: String(Math.floor(Math.random() * 5) + 15),
+        icon: conditions[Math.floor(Math.random() * 3)],
+      })),
+    },
+  };
+
+  // 7일 예보
+  const forecast: SearchResultItem[] = Array.from({ length: 7 }, (_, i) => {
+    const date = new Date(now);
+    date.setDate(date.getDate() + i);
+    const condIndex = Math.floor(Math.random() * conditions.length);
+
+    return {
+      id: `weather-day-${i}`,
+      title: i === 0 ? '오늘' : i === 1 ? '내일' : `${days[date.getDay()]}요일`,
+      category: '예보',
+      metadata: {
+        condition: conditions[condIndex],
+        high: String(Math.floor(Math.random() * 10) + 18),
+        low: String(Math.floor(Math.random() * 8) + 8),
+        precipitation: String(Math.floor(Math.random() * 40)),
+      },
+    };
+  });
+
+  return [currentWeather, ...forecast];
 }
 
 // 인물 검색 결과 생성 (위키 스타일 메타데이터 포함)

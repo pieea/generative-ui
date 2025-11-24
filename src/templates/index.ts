@@ -119,3 +119,4 @@ export { TimelineTemplate } from './TimelineTemplate';
 export { ProfileTemplate } from './ProfileTemplate';
 export { ArticleTemplate } from './ArticleTemplate';
 export { MapTemplate } from './MapTemplate';
+export { WeatherTemplate } from './WeatherTemplate';

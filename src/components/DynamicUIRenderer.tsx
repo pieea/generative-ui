@@ -12,6 +12,7 @@ import {
   ProfileTemplate,
   ArticleTemplate,
   MapTemplate,
+  WeatherTemplate,
 } from '@/templates';
 import { ControllerBar } from './ControllerBar';
 import { FeedbackInput } from './FeedbackInput';
@@ -35,6 +36,7 @@ const templateComponents: Record<TemplateType, React.ComponentType<any>> = {
   profile: ProfileTemplate,    // 인물 위키/프로필
   article: ArticleTemplate,    // 기사 본문 (경제/뉴스)
   map: MapTemplate,            // 지도 기반 장소
+  weather: WeatherTemplate,    // 날씨 정보
   table: ListTemplate,         // fallback
   comparison: CarouselTemplate, // 비교는 캐러셀로
   detail: ProfileTemplate,     // 상세는 프로필로

@@ -22,10 +22,15 @@ export function generateUIState(searchResult: SearchResult): UIState {
 
   const layout = getLayoutByCount(searchResult.items.length);
 
+  // 날씨 데이터 감지 (metadata에 condition이 있으면 날씨)
+  const isWeatherData = searchResult.items.some(
+    (item) => item.metadata && 'condition' in item.metadata
+  );
+
   const uiState: UIState = {
-    mainTemplate: templateComposition.main,
+    mainTemplate: isWeatherData ? 'weather' : templateComposition.main,
     secondaryTemplate: templateComposition.secondary,
-    controllers: templateComposition.controllers,
+    controllers: isWeatherData ? [] : templateComposition.controllers,
     data: searchResult,
     layout: {
       ...layout,
@@ -99,6 +104,10 @@ export function updateUIFromFeedback(
 
   if (feedbackLower.includes('지도') || feedbackLower.includes('map') || feedbackLower.includes('위치') || feedbackLower.includes('장소 목록')) {
     newState.mainTemplate = 'map';
+  }
+
+  if (feedbackLower.includes('날씨') || feedbackLower.includes('weather') || feedbackLower.includes('기온') || feedbackLower.includes('예보')) {
+    newState.mainTemplate = 'weather';
   }
 
   // 이미지 표시 변경
