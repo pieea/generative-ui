@@ -10,10 +10,16 @@ https://research.google/blog/generative-ui-a-rich-custom-visual-interactive-user
 - 검색어와 검색결과에 따라서 내부적으로 보유하고 있는 UI 템플릿 중 적합한 형태를 판단한다. 필요에 따라서는 메인 / 컨트롤러를 합치거나 둘 이상의 메인 템플릿을 조합한다.
 - 사용자가 추가적인 피드백을 요구하는 경우(e.g. 날짜로 필터링 하고 싶어, 화면을 크게 보고 싶어) 해당 요구사항을 반영한 형태로 UI를 재구성한다.
 - 요청 패턴에 따른 템플릿 결과는 캐싱을 한다
-- 
+
+# 검색엔진 활용
+- URL: https://search.daum.net/search?w=tot&nil_mtopsearch=btn&DA=YZR&q={query}
+- class="g_comp" 항목을 필터링 해서 결과로 사용
+- 관련 검색어를 제외하고 1~2번째로 나오는 결과가 해당 키워드에 대한 주요 검색 결과
+- 주요 검색 결과를 사용해서 검색어의 의도를 파악하고 템플릿에 대해 결정한다.
 
 # 기술 스펙
 - Next.js 15 활용
+
 
 
 
