@@ -1,41 +1,19 @@
 import { SearchResult, ResultType, SearchResultItem } from '@/types';
+import { rewriteQuery, SearchIntent, ExpandedQuery } from './queryRewriteService';
 
-// 검색 결과 타입 분류 로직
+// 검색 결과 타입 분류 (메타데이터 기반)
 export function classifyResultType(query: string, items: SearchResultItem[]): ResultType {
-  const queryLower = query.toLowerCase();
+  const hasPrice = items.some((item) => item.metadata && 'price' in item.metadata);
+  const hasRating = items.some((item) => item.metadata && 'rating' in item.metadata);
+  const hasAddress = items.some((item) => item.metadata && 'address' in item.metadata);
+  const hasCondition = items.some((item) => item.metadata && 'condition' in item.metadata);
+  const hasBio = items.some((item) => item.metadata && ('birthDate' in item.metadata || 'occupation' in item.metadata));
 
-  // 키워드 기반 분류
-  const typeKeywords: Record<ResultType, string[]> = {
-    news: ['뉴스', '기사', '속보', 'news', '보도'],
-    products: [
-      '상품', '제품', '구매', '쇼핑', '가격', 'product', 'buy', 'price',
-      '추천', '가성비', '비교', '리뷰', '후기', '최저가', '할인',
-      '노트북', '태블릿', '스마트폰', '핸드폰', '휴대폰', '아이폰', '갤럭시', '아이패드',
-      '이어폰', '헤드폰', '에어팟', '버즈', '무선이어폰',
-      '모니터', '키보드', '마우스', 'tv', '냉장고', '세탁기', '에어컨', '청소기',
-      '카메라', '렌즈', '게이밍', '그래픽카드', 'ssd', '메모리'
-    ],
-    images: ['이미지', '사진', '그림', 'image', 'photo', 'picture'],
-    locations: [
-      '장소', '위치', '지도', '맛집', '카페', '음식점', '식당', '레스토랑',
-      '관광지', '명소', '볼거리', '여행', '숙소', '호텔', '펜션',
-      '공원', '박물관', '미술관', '서점',
-      '서울', '제주', '강남', '홍대', '이태원', '부산', '경주', '전주', '속초',
-      'location', 'map', 'place'
-    ],
-    events: ['이벤트', '행사', '일정', '축제', 'event', 'schedule', 'festival'],
-    people: ['인물', '사람', '배우', '가수', 'people', 'person', 'celebrity'],
-    documents: ['문서', '파일', '자료', 'document', 'file', 'pdf'],
-    mixed: [],
-  };
+  if (hasCondition) return 'weather';
+  if (hasPrice && hasRating) return 'products';
+  if (hasAddress) return 'locations';
+  if (hasBio) return 'people';
 
-  for (const [type, keywords] of Object.entries(typeKeywords)) {
-    if (keywords.some((keyword) => queryLower.includes(keyword))) {
-      return type as ResultType;
-    }
-  }
-
-  // 결과 아이템 분석
   const hasImages = items.some((item) => item.imageUrl);
   const hasTimestamps = items.some((item) => item.timestamp);
   const hasCategories = items.some((item) => item.category);
@@ -46,276 +24,175 @@ export function classifyResultType(query: string, items: SearchResultItem[]): Re
   return 'mixed';
 }
 
-// 검색 수행 (향후 실제 검색 엔진 연동 예정)
+// 검색 수행 (LLM rewrite 기반)
 export async function performSearch(query: string): Promise<SearchResult> {
-  // TODO: 실제 검색 엔진 API 연동
-  // 현재는 Mock 데이터 반환
-  const mockItems = generateMockResults(query);
-  const resultType = classifyResultType(query, mockItems);
+  // 1. LLM으로 검색어 rewrite 및 확장
+  const rewriteResult = await rewriteQuery(query);
+  console.log('[Search Service] Rewrite result:', rewriteResult);
+
+  // 2. 확장된 각 쿼리에 대해 검색 수행
+  const allItems: SearchResultItem[] = [];
+  const intentGroups: Map<SearchIntent, SearchResultItem[]> = new Map();
+
+  for (const expandedQuery of rewriteResult.expandedQueries) {
+    const items = generateMockResultsByIntent(expandedQuery.query, expandedQuery.intent);
+
+    // 의도별로 그룹화
+    const existing = intentGroups.get(expandedQuery.intent) || [];
+    intentGroups.set(expandedQuery.intent, [...existing, ...items]);
+
+    // 전체 결과에 추가 (중복 제거용 태그 추가)
+    items.forEach(item => {
+      item.metadata = {
+        ...item.metadata,
+        sourceQuery: expandedQuery.query,
+        sourceIntent: expandedQuery.intent,
+      };
+    });
+    allItems.push(...items);
+  }
+
+  // 3. 결과 병합 및 정렬 (의도별로 그룹화하여 표시)
+  const mergedItems = mergeAndSortResults(allItems, rewriteResult.expandedQueries);
+  const resultType = classifyResultType(query, mergedItems);
 
   return {
     query,
-    items: mockItems,
-    totalCount: mockItems.length,
+    items: mergedItems,
+    totalCount: mergedItems.length,
     resultType,
     metadata: {
       source: 'mock',
       searchTime: Math.random() * 500 + 100,
+      rewriteResult: {
+        originalQuery: rewriteResult.originalQuery,
+        expanded: rewriteResult.shouldExpand,
+        queries: rewriteResult.expandedQueries,
+      },
     },
   };
 }
 
-// Mock 데이터 생성 (개발용)
-function generateMockResults(query: string): SearchResultItem[] {
-  const queryLower = query.toLowerCase();
+// 결과 병합 및 정렬
+function mergeAndSortResults(items: SearchResultItem[], queries: ExpandedQuery[]): SearchResultItem[] {
+  // 의도 우선순위에 따라 정렬
+  const intentPriority: Record<SearchIntent, number> = {
+    people: 1,      // 인물 정보 우선
+    news: 2,        // 뉴스/기사
+    products: 3,    // 상품
+    locations: 4,   // 장소
+    weather: 5,     // 날씨
+    events: 6,      // 이벤트
+    images: 7,      // 이미지
+    documents: 8,   // 문서
+    mixed: 9,       // 일반
+  };
 
-  // 경제/금융 기사 검색 감지
-  const isEconomicArticle = [
-    '경제', '금융', '주식', '증시', '코스피', '코스닥', 'kospi', 'nasdaq',
-    '환율', '금리', '인플레이션', '경기', '무역', '수출', '수입',
-    'gdp', '실업률', '고용', '투자', '펀드', '채권', '기준금리',
-    '한은', '미연준', 'fed', '달러', '엔화', '유로', '원화',
-    '삼성전자', '현대차', '반도체', '배터리', '2차전지'
-  ].some((keyword) => queryLower.includes(keyword));
+  return items.sort((a, b) => {
+    const intentA = (a.metadata?.sourceIntent as SearchIntent) || 'mixed';
+    const intentB = (b.metadata?.sourceIntent as SearchIntent) || 'mixed';
+    return intentPriority[intentA] - intentPriority[intentB];
+  });
+}
 
-  if (isEconomicArticle) {
-    return generateEconomicArticle(query);
+// 의도에 따른 Mock 데이터 생성
+function generateMockResultsByIntent(query: string, intent: SearchIntent): SearchResultItem[] {
+  switch (intent) {
+    case 'products':
+      return generateProductResults(query);
+    case 'locations':
+      return generateLocationResults(query);
+    case 'weather':
+      return generateWeatherResults(query);
+    case 'news':
+      return generateNewsResults(query);
+    case 'people':
+      return generatePersonResults(query);
+    default:
+      return generateGenericResults(query);
   }
+}
 
-  // 날씨 검색 감지
-  const isWeatherSearch = [
-    '날씨', '기온', '온도', '비', '눈', '맑음', '흐림', 'weather',
-    '일기예보', '기상', '미세먼지', '자외선', '강수', '습도'
-  ].some((keyword) => queryLower.includes(keyword));
-
-  if (isWeatherSearch) {
-    return generateWeatherResults(query);
-  }
-
-  // 장소/위치 검색 감지
-  const isLocationSearch = [
-    '맛집', '카페', '음식점', '식당', '레스토랑', '베이커리', '브런치',
-    '관광지', '명소', '볼거리', '여행', '숙소', '호텔', '펜션', '게스트하우스',
-    '공원', '박물관', '미술관', '전시관', '서점', '편의점',
-    '서울', '제주', '강남', '홍대', '이태원', '부산', '경주', '전주', '속초', '인천', '대구', '광주'
-  ].some((keyword) => queryLower.includes(keyword));
-
-  if (isLocationSearch) {
-    return generateLocationResults(query);
-  }
-
-  // 인물 검색 감지 (CEO, 배우, 가수 등)
-  const isPeopleSearch = ['ceo', '배우', '가수', '인물', 'person', '멤버'].some(
-    (keyword) => queryLower.includes(keyword)
-  );
-
-  if (isPeopleSearch) {
-    return generatePersonResults(query);
-  }
-
-  // 상품/쇼핑 검색 감지
-  const isProductSearch = [
-    '추천', '가성비', '비교', '리뷰', '후기', '최저가', '할인',
-    '노트북', '태블릿', '스마트폰', '핸드폰', '휴대폰', '아이폰', '갤럭시', '아이패드',
-    '이어폰', '헤드폰', '에어팟', '버즈', '무선',
-    '모니터', '키보드', '마우스', 'tv', '냉장고', '세탁기', '에어컨', '청소기',
-    '카메라', '렌즈', '게이밍', '그래픽카드', 'ssd', '메모리'
-  ].some((keyword) => queryLower.includes(keyword));
-
-  if (isProductSearch) {
-    return generateProductResults(query);
-  }
-
-  const count = Math.floor(Math.random() * 8) + 4;
+// 일반 검색 결과 생성
+function generateGenericResults(query: string): SearchResultItem[] {
+  const count = Math.floor(Math.random() * 4) + 3;
   const items: SearchResultItem[] = [];
 
   for (let i = 0; i < count; i++) {
     items.push({
-      id: `item-${i + 1}`,
+      id: `item-${Date.now()}-${i}`,
       title: `${query} 관련 결과 ${i + 1}`,
-      description: `${query}에 대한 검색 결과입니다. 이것은 샘플 설명 텍스트로, 실제 검색 결과에서는 더 상세한 내용이 표시됩니다.`,
+      description: `${query}에 대한 검색 결과입니다.`,
       url: `https://example.com/result/${i + 1}`,
       imageUrl: i % 2 === 0 ? `https://picsum.photos/seed/${query}${i}/400/300` : undefined,
       timestamp: new Date(Date.now() - Math.random() * 30 * 24 * 60 * 60 * 1000).toLocaleDateString('ko-KR'),
       category: ['기술', '생활', '문화', '경제'][i % 4],
-      tags: ['태그1', '태그2'].slice(0, (i % 2) + 1),
     });
   }
 
   return items;
 }
 
-// 경제 기사 결과 생성 (상세 본문 포함)
-function generateEconomicArticle(query: string): SearchResultItem[] {
+// 뉴스/기사 결과 생성
+function generateNewsResults(query: string): SearchResultItem[] {
   const today = new Date().toLocaleDateString('ko-KR', {
     year: 'numeric',
     month: 'long',
     day: 'numeric',
   });
 
-  // 메인 기사
-  const mainArticle: SearchResultItem = {
-    id: 'article-main',
-    title: `${query} 관련 시장 동향 및 전망 분석`,
-    description: `최근 ${query}와 관련된 시장이 큰 변화를 맞이하고 있습니다. 전문가들은 이번 변화가 단기적인 현상이 아닌 구조적인 변화의 시작점이 될 수 있다고 분석하고 있습니다.
-
-국내외 경제 상황과 정책 방향을 종합적으로 고려할 때, 향후 시장의 흐름은 여러 변수에 의해 결정될 것으로 보입니다. 특히 글로벌 경제 환경의 불확실성이 지속되는 가운데, 국내 기업들의 대응 전략이 주목받고 있습니다.
-
-업계 관계자들은 "현재의 시장 상황은 도전적이지만, 동시에 새로운 기회를 모색할 수 있는 시기"라며 "기업들의 혁신적인 접근이 필요한 때"라고 강조했습니다.`,
-    url: 'https://example.com/economy/article/main',
-    imageUrl: `https://picsum.photos/seed/${query}economy/800/400`,
-    timestamp: today,
-    category: '경제',
-    tags: ['경제', '시장분석', '전망', query.split(' ')[0]],
-    metadata: {
-      author: '김경제 기자',
-      source: '경제일보',
-      readTime: '5분 소요',
-      imageCaption: `${query} 관련 시장 동향 이미지`,
-      summary: `${query}와 관련된 시장이 변화하고 있으며, 전문가들은 구조적 변화의 가능성을 언급하고 있습니다. 글로벌 불확실성 속에서 기업들의 대응 전략이 중요해지고 있습니다.`,
-      body: `◆ 시장 현황
-
-${query}와 관련된 시장은 최근 몇 달간 급격한 변화를 겪고 있습니다. 국내외 다양한 요인들이 복합적으로 작용하면서 시장 참여자들의 관심이 높아지고 있습니다.
-
-한국은행의 최근 보고서에 따르면, 관련 지표들이 예상을 상회하는 수준으로 나타나고 있으며, 이는 실물 경제에도 긍정적인 영향을 미칠 것으로 전망됩니다.
-
-◆ 전문가 분석
-
-주요 증권사 애널리스트들은 현재 상황에 대해 다양한 의견을 제시하고 있습니다. 일부는 단기적인 조정 가능성을 언급하면서도, 중장기적으로는 성장 잠재력이 높다고 평가하고 있습니다.
-
-"현재의 밸류에이션은 여전히 매력적인 수준"이라며 "장기 투자자들에게는 좋은 진입 시점이 될 수 있다"는 분석도 나오고 있습니다.
-
-◆ 향후 전망
-
-향후 시장 전망에 대해서는 여러 시나리오가 제시되고 있습니다. 긍정적인 시나리오에서는 정부의 정책 지원과 기업들의 혁신 노력이 결합되어 성장세가 이어질 것으로 예상됩니다.
-
-다만, 글로벌 경제 불확실성과 지정학적 리스크는 여전히 주시해야 할 변수로 남아있습니다. 전문가들은 분산 투자와 리스크 관리의 중요성을 강조하고 있습니다.`,
-      keyFigures: [
-        { label: '코스피', value: '2,650.28', change: '+1.2%' },
-        { label: '코스닥', value: '875.45', change: '+0.8%' },
-        { label: '원/달러', value: '1,320.50', change: '-0.3%' },
-        { label: '국고채 3년', value: '3.45%', change: '+0.05%p' },
-      ],
-      quote: '현재의 시장 변화는 새로운 패러다임의 시작점이 될 수 있습니다. 기업과 투자자 모두 장기적 관점에서 전략을 수립해야 할 때입니다.',
-      quoteAuthor: '한국경제연구원 수석연구위원',
-    },
-  };
-
-  // 관련 기사들
-  const relatedArticles: SearchResultItem[] = [
+  return [
     {
-      id: 'article-related-1',
-      title: `"${query}" 관련주 급등...투자 주의보`,
-      description: '전문가들은 단기 급등에 따른 차익 실현 매물 출회 가능성을 경고',
-      url: 'https://example.com/economy/article/1',
-      imageUrl: `https://picsum.photos/seed/${query}1/400/300`,
+      id: `news-${Date.now()}-1`,
+      title: `${query} 관련 최신 소식`,
+      description: `${query}에 대한 최신 뉴스입니다. 업계에서 큰 관심을 받고 있습니다.`,
+      url: 'https://example.com/news/1',
+      imageUrl: `https://picsum.photos/seed/${query}news1/400/300`,
       timestamp: today,
-      category: '증권',
+      category: '뉴스',
+      metadata: {
+        author: '기자',
+        source: '뉴스매체',
+        body: `${query}에 대한 상세 기사 내용입니다.`,
+      },
     },
     {
-      id: 'article-related-2',
-      title: `정부, ${query} 관련 새 정책 발표 예정`,
-      description: '이번 주 중 구체적인 정책 방향이 공개될 것으로 예상',
-      url: 'https://example.com/economy/article/2',
-      imageUrl: `https://picsum.photos/seed/${query}2/400/300`,
+      id: `news-${Date.now()}-2`,
+      title: `"${query}" 화제... 네티즌 반응`,
+      description: '온라인에서 뜨거운 반응을 얻고 있습니다.',
+      url: 'https://example.com/news/2',
+      imageUrl: `https://picsum.photos/seed/${query}news2/400/300`,
       timestamp: today,
-      category: '정책',
+      category: '이슈',
     },
     {
-      id: 'article-related-3',
-      title: `글로벌 시장에서 본 ${query}의 의미`,
-      description: '해외 전문가들의 시각과 국제 시장 동향 분석',
-      url: 'https://example.com/economy/article/3',
-      imageUrl: `https://picsum.photos/seed/${query}3/400/300`,
+      id: `news-${Date.now()}-3`,
+      title: `${query}, 앞으로의 전망은?`,
+      description: '전문가들의 다양한 분석이 나오고 있습니다.',
+      url: 'https://example.com/news/3',
+      imageUrl: `https://picsum.photos/seed/${query}news3/400/300`,
       timestamp: today,
-      category: '글로벌',
-    },
-    {
-      id: 'article-related-4',
-      title: `${query} 영향받는 업종별 전망`,
-      description: '각 산업별로 미치는 영향과 대응 전략 분석',
-      url: 'https://example.com/economy/article/4',
-      imageUrl: `https://picsum.photos/seed/${query}4/400/300`,
-      timestamp: today,
-      category: '산업',
+      category: '분석',
     },
   ];
-
-  return [mainArticle, ...relatedArticles];
 }
 
-// 장소 검색 결과 생성 (지도 레이아웃용)
+// 장소 검색 결과 생성
 function generateLocationResults(query: string): SearchResultItem[] {
-  const queryLower = query.toLowerCase();
-  const isTourist = queryLower.includes('관광') || queryLower.includes('명소') || queryLower.includes('볼거리');
+  const places = ['추천 장소 1', '인기 명소 2', '핫플레이스 3', '숨은 명소 4'];
 
-  // 서울 관광지
-  const seoulTouristSpots = ['경복궁', 'N서울타워', '북촌한옥마을', '광화문광장', '청계천', '인사동', '명동', '동대문디자인플라자'];
-  // 제주 카페
-  const jejuCafes = ['오설록 티뮤지엄', '카페 델문도', '몽상드애월', '빈브라더스 제주', '노티드 제주', '마노르블랑 카페', '카페 공백', '봄날 카페'];
-  // 강남 카페
-  const gangnamCafes = ['카페 드 파리', '블루보틀 강남', '테라로사 강남', '프릳츠 강남', '빈브라더스 강남', '커피콩볶는집 강남점', '앤트러사이트'];
-  // 기본 장소
-  const defaultPlaces = ['로컬 장소 1', '로컬 장소 2', '로컬 장소 3', '로컬 장소 4', '로컬 장소 5', '로컬 장소 6'];
-
-  let locationNames: string[];
-  let categories: string[];
-  let tags: string[];
-
-  if (queryLower.includes('서울') && isTourist) {
-    locationNames = seoulTouristSpots;
-    categories = ['고궁', '랜드마크', '전통마을', '광장', '산책로', '문화거리', '쇼핑', '건축'];
-    tags = ['역사', '포토스팟', '야경', '전통', '문화', 'K-관광', '가족여행', '데이트'];
-  } else if (queryLower.includes('제주')) {
-    locationNames = jejuCafes;
-    categories = ['카페', '디저트카페', '브런치카페', '루프탑카페', '뷰맛집', '베이커리카페'];
-    tags = ['뷰맛집', '디저트', '커피맛집', '브런치', '인스타감성', '조용한', '넓은주차장', '펫프렌들리'];
-  } else if (queryLower.includes('강남')) {
-    locationNames = gangnamCafes;
-    categories = ['카페', '디저트카페', '브런치카페', '루프탑카페', '뷰맛집', '베이커리카페'];
-    tags = ['트렌디', '커피맛집', '디저트', '모임', '데이트', '작업하기좋은'];
-  } else {
-    locationNames = defaultPlaces;
-    categories = ['카페', '맛집', '관광지', '명소', '공원', '문화시설'];
-    tags = ['인기', '추천', '가볼만한', '숨은명소', '포토스팟', '가족'];
-  }
-
-  // 서울 관광지 주소
-  const seoulAddresses = [
-    '서울특별시 종로구 사직로 161',
-    '서울특별시 용산구 남산공원길 105',
-    '서울특별시 종로구 계동길 37',
-    '서울특별시 종로구 세종대로 172',
-    '서울특별시 종로구 청계천로',
-    '서울특별시 종로구 인사동길',
-    '서울특별시 중구 명동길',
-    '서울특별시 중구 을지로 281',
-  ];
-
-  return locationNames.slice(0, 6).map((name, index) => ({
-    id: `location-${index + 1}`,
-    title: name,
-    description: isTourist
-      ? `${name}은(는) ${query}의 대표적인 ${categories[index % categories.length]}입니다. 많은 관광객들이 찾는 인기 명소입니다.`
-      : `${query}에서 인기있는 ${categories[index % categories.length]}입니다. 아늑한 분위기와 맛있는 음료로 많은 사랑을 받고 있습니다.`,
+  return places.map((name, index) => ({
+    id: `location-${Date.now()}-${index}`,
+    title: `${query} - ${name}`,
+    description: `${query}에서 인기있는 장소입니다.`,
     url: `https://example.com/place/${index + 1}`,
     imageUrl: `https://picsum.photos/seed/${name}${index}/400/300`,
-    category: categories[index % categories.length],
-    tags: tags.slice(index % 3, (index % 3) + 3),
+    category: '장소',
     metadata: {
       rating: (4 + Math.random()).toFixed(1),
       reviewCount: Math.floor(Math.random() * 500) + 50,
-      distance: `${(Math.random() * 3 + 0.5).toFixed(1)}km`,
-      address: queryLower.includes('서울') && isTourist
-        ? seoulAddresses[index % seoulAddresses.length]
-        : queryLower.includes('제주')
-        ? `제주특별자치도 제주시 ${['애월읍', '한림읍', '조천읍', '구좌읍'][index % 4]} ${index + 1}길 ${Math.floor(Math.random() * 100) + 1}`
-        : queryLower.includes('강남')
-        ? `서울특별시 강남구 ${['테헤란로', '강남대로', '논현로', '압구정로'][index % 4]} ${Math.floor(Math.random() * 500) + 1}`
-        : `서울특별시 ${['마포구', '종로구', '용산구', '성동구'][index % 4]} ${index + 1}길 ${Math.floor(Math.random() * 100) + 1}`,
-      openHours: isTourist ? '09:00 - 18:00 (계절별 상이)' : `${8 + (index % 3)}:00 - ${21 + (index % 3)}:00`,
-      priceRange: isTourist ? (index < 2 ? '₩₩' : '무료') : ['₩', '₩₩', '₩₩₩'][index % 3],
-      phone: `02-${Math.floor(Math.random() * 9000) + 1000}-${Math.floor(Math.random() * 9000) + 1000}`,
+      address: `서울특별시 ${['강남구', '마포구', '종로구', '용산구'][index % 4]}`,
+      openHours: `${8 + (index % 3)}:00 - ${21 + (index % 3)}:00`,
     },
   }));
 }
@@ -323,176 +200,87 @@ function generateLocationResults(query: string): SearchResultItem[] {
 // 날씨 검색 결과 생성
 function generateWeatherResults(query: string): SearchResultItem[] {
   const now = new Date();
-  const days = ['일', '월', '화', '수', '목', '금', '토'];
   const conditions = ['sunny', 'cloudy', 'partlyCloudy', 'rainy', 'snowy'];
   const conditionNames = ['맑음', '흐림', '구름조금', '비', '눈'];
-
-  // 지역명 추출
-  const locations = ['서울', '부산', '제주', '대구', '인천', '광주', '대전'];
+  const locations = ['서울', '부산', '제주', '대구', '인천'];
   const foundLocation = locations.find(loc => query.includes(loc)) || '서울';
+  const condIndex = Math.floor(Math.random() * 3);
 
-  // 현재 날씨
-  const currentConditionIndex = Math.floor(Math.random() * 3);
-  const currentWeather: SearchResultItem = {
-    id: 'weather-current',
-    title: conditionNames[currentConditionIndex],
-    timestamp: now.toLocaleString('ko-KR', { hour: '2-digit', minute: '2-digit' }) + ' 기준',
-    category: '날씨',
-    metadata: {
-      location: foundLocation,
-      condition: conditions[currentConditionIndex],
-      temperature: String(Math.floor(Math.random() * 15) + 10),
-      humidity: String(Math.floor(Math.random() * 40) + 40),
-      windSpeed: String((Math.random() * 5 + 1).toFixed(1)),
-      feelsLike: String(Math.floor(Math.random() * 15) + 8),
-      precipitation: String(Math.floor(Math.random() * 30)),
-      airQuality: true,
-      pm10: String(Math.floor(Math.random() * 50) + 20),
-      pm10Status: '보통',
-      pm10Level: 'moderate',
-      pm25: String(Math.floor(Math.random() * 30) + 10),
-      pm25Status: '좋음',
-      pm25Level: 'good',
-      hourlyForecast: Array.from({ length: 8 }, (_, i) => ({
-        time: `${(now.getHours() + i + 1) % 24}시`,
-        temp: String(Math.floor(Math.random() * 5) + 15),
-        icon: conditions[Math.floor(Math.random() * 3)],
-      })),
-    },
-  };
-
-  // 7일 예보
-  const forecast: SearchResultItem[] = Array.from({ length: 7 }, (_, i) => {
-    const date = new Date(now);
-    date.setDate(date.getDate() + i);
-    const condIndex = Math.floor(Math.random() * conditions.length);
-
-    return {
-      id: `weather-day-${i}`,
-      title: i === 0 ? '오늘' : i === 1 ? '내일' : `${days[date.getDay()]}요일`,
-      category: '예보',
-      metadata: {
-        condition: conditions[condIndex],
-        high: String(Math.floor(Math.random() * 10) + 18),
-        low: String(Math.floor(Math.random() * 8) + 8),
-        precipitation: String(Math.floor(Math.random() * 40)),
-      },
-    };
-  });
-
-  return [currentWeather, ...forecast];
-}
-
-// 인물 검색 결과 생성 (위키 스타일 메타데이터 포함)
-function generatePersonResults(query: string): SearchResultItem[] {
-  // 단일 인물 프로필 반환 (테슬라 CEO 등의 검색에 적합)
   return [
     {
-      id: 'person-1',
-      title: query.includes('테슬라') ? 'Elon Musk' : `${query}`,
-      description: `${query}에 대한 상세 정보입니다. 이 인물은 다양한 분야에서 활발하게 활동하고 있으며, 많은 업적을 남겼습니다.`,
-      url: 'https://example.com/wiki/person',
-      imageUrl: `https://picsum.photos/seed/${query}/400/500`,
-      timestamp: new Date().toLocaleDateString('ko-KR'),
-      category: '기업인',
-      tags: ['CEO', '기업가', '혁신가'],
+      id: `weather-${Date.now()}`,
+      title: conditionNames[condIndex],
+      timestamp: now.toLocaleString('ko-KR', { hour: '2-digit', minute: '2-digit' }) + ' 기준',
+      category: '날씨',
       metadata: {
-        birthDate: '1971년 6월 28일',
-        birthPlace: '남아프리카공화국 프리토리아',
-        nationality: '미국, 남아프리카공화국, 캐나다',
-        occupation: '기업인, 엔지니어, 투자자',
-        organization: 'Tesla, SpaceX, X Corp',
-        netWorth: '약 2,000억 달러 (2024년 기준)',
-        education: '펜실베이니아 대학교',
-        website: 'https://twitter.com/elonmusk',
-        summary: '일론 머스크는 테슬라의 CEO이자 SpaceX의 창립자로, 전기차와 우주 탐사 분야에서 혁신을 이끌고 있습니다.',
-        career: '1995년 Zip2 창업, 1999년 X.com(이후 PayPal) 창업, 2002년 SpaceX 설립, 2004년 Tesla 투자 및 이사회 의장 취임, 2022년 Twitter 인수',
-        achievements: 'PayPal 공동 창업, Tesla를 세계 최대 전기차 회사로 성장, SpaceX를 통한 민간 우주 비행 실현, Starlink 위성 인터넷 서비스 구축',
+        location: foundLocation,
+        condition: conditions[condIndex],
+        temperature: String(Math.floor(Math.random() * 15) + 10),
+        humidity: String(Math.floor(Math.random() * 40) + 40),
+        feelsLike: String(Math.floor(Math.random() * 15) + 8),
+        hourlyForecast: Array.from({ length: 6 }, (_, i) => ({
+          time: `${(now.getHours() + i + 1) % 24}시`,
+          temp: String(Math.floor(Math.random() * 5) + 15),
+          icon: conditions[Math.floor(Math.random() * 3)],
+        })),
       },
     },
   ];
 }
 
-// 상품 검색 결과 생성 (쇼핑 레이아웃용)
+// 인물 검색 결과 생성
+function generatePersonResults(query: string): SearchResultItem[] {
+  return [
+    {
+      id: `person-${Date.now()}`,
+      title: query,
+      description: `${query}에 대한 상세 정보입니다.`,
+      url: 'https://example.com/wiki/person',
+      imageUrl: `https://picsum.photos/seed/${query}/400/500`,
+      timestamp: new Date().toLocaleDateString('ko-KR'),
+      category: '인물',
+      metadata: {
+        birthDate: '생년월일 정보',
+        birthPlace: '출생지 정보',
+        nationality: '국적 정보',
+        occupation: '직업 정보',
+        organization: '소속 정보',
+        summary: `${query}에 대한 요약 정보입니다.`,
+      },
+    },
+  ];
+}
+
+// 상품 검색 결과 생성
 function generateProductResults(query: string): SearchResultItem[] {
-  const queryLower = query.toLowerCase();
+  const productNames = [
+    `${query} 프리미엄`, `${query} 스탠다드`, `${query} 프로`,
+    `${query} 라이트`, `${query} 울트라`, `${query} 플러스`
+  ];
+  const brands = ['삼성', 'LG', 'Apple', 'Sony', '브랜드A', '브랜드B'];
 
-  // 카테고리별 상품 데이터
-  const productData: Record<string, { products: string[]; brands: string[]; priceRange: [number, number] }> = {
-    노트북: {
-      products: [
-        '맥북 프로 14인치 M3 Pro', '삼성 갤럭시북4 프로', 'LG 그램 17인치',
-        'ASUS ROG Zephyrus G14', '레노버 씽크패드 X1 Carbon', 'HP 스펙터 x360',
-        '에이서 스위프트 Go 14', '델 XPS 15', '맥북 에어 15인치 M3'
-      ],
-      brands: ['Apple', '삼성', 'LG', 'ASUS', 'Lenovo', 'HP', 'Acer', 'Dell'],
-      priceRange: [800000, 3500000],
-    },
-    태블릿: {
-      products: [
-        '아이패드 프로 12.9인치 M4', '아이패드 에어 11인치', '갤럭시 탭 S9 Ultra',
-        '갤럭시 탭 S9 FE', '아이패드 10세대', '갤럭시 탭 A9+',
-        'Microsoft Surface Pro 9', '레노버 탭 P12 Pro', '샤오미 패드 6'
-      ],
-      brands: ['Apple', '삼성', 'Microsoft', 'Lenovo', 'Xiaomi'],
-      priceRange: [300000, 2000000],
-    },
-    이어폰: {
-      products: [
-        '에어팟 프로 2세대', '갤럭시 버즈3 프로', '소니 WF-1000XM5',
-        '삼성 갤럭시 버즈 FE', '에어팟 4세대', '젠하이저 모멘텀 TW4',
-        'JBL Tour Pro 2', 'Bose QuietComfort Ultra', '픽셀 버즈 Pro'
-      ],
-      brands: ['Apple', '삼성', 'Sony', 'Sennheiser', 'JBL', 'Bose', 'Google'],
-      priceRange: [50000, 450000],
-    },
-    default: {
-      products: [
-        `${query} 프리미엄`, `${query} 스탠다드`, `${query} 프로`,
-        `${query} 라이트`, `${query} 울트라`, `${query} 플러스`,
-        `${query} 에센셜`, `${query} 맥스`, `${query} 미니`
-      ],
-      brands: ['삼성', 'LG', 'Apple', 'Sony', '브랜드A', '브랜드B'],
-      priceRange: [100000, 1000000],
-    },
-  };
-
-  // 쿼리에서 카테고리 추출
-  let category = 'default';
-  if (queryLower.includes('노트북')) category = '노트북';
-  else if (queryLower.includes('태블릿') || queryLower.includes('아이패드')) category = '태블릿';
-  else if (queryLower.includes('이어폰') || queryLower.includes('에어팟') || queryLower.includes('버즈') || queryLower.includes('헤드폰')) category = '이어폰';
-
-  const data = productData[category];
-  const isValueSearch = queryLower.includes('가성비');
-
-  return data.products.slice(0, 8).map((name, index) => {
-    const basePrice = data.priceRange[0] + Math.random() * (data.priceRange[1] - data.priceRange[0]);
+  return productNames.map((name, index) => {
+    const basePrice = 100000 + Math.random() * 900000;
     const hasDiscount = Math.random() > 0.4;
     const discount = hasDiscount ? Math.floor(Math.random() * 30) + 5 : 0;
     const originalPrice = Math.floor(basePrice);
     const price = hasDiscount ? Math.floor(originalPrice * (1 - discount / 100)) : originalPrice;
 
     return {
-      id: `product-${index + 1}`,
+      id: `product-${Date.now()}-${index}`,
       title: name,
-      description: `${name}은(는) ${isValueSearch ? '뛰어난 가성비로 인기 있는' : '고성능'} 제품입니다. 다양한 기능과 세련된 디자인으로 많은 사랑을 받고 있습니다.`,
+      description: `${name}은(는) 고품질 제품입니다.`,
       url: `https://example.com/product/${index + 1}`,
       imageUrl: `https://picsum.photos/seed/${name}${index}/400/400`,
-      category: category === 'default' ? '전자제품' : category,
-      tags: isValueSearch
-        ? ['가성비', '인기상품', '추천']
-        : ['프리미엄', '베스트셀러', '신상품'].slice(0, (index % 3) + 1),
+      category: '상품',
       metadata: {
         price,
         originalPrice: hasDiscount ? originalPrice : undefined,
         discount: hasDiscount ? discount : undefined,
         rating: Number((4 + Math.random()).toFixed(1)),
         reviewCount: Math.floor(Math.random() * 5000) + 100,
-        brand: data.brands[index % data.brands.length],
+        brand: brands[index % brands.length],
         freeShipping: Math.random() > 0.3,
-        isNew: Math.random() > 0.8,
-        isBest: Math.random() > 0.7,
       },
     };
   });

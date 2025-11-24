@@ -98,6 +98,17 @@
   font-size: 0.9rem;
 }
 
+.debugInfo {
+  font-family: 'SF Mono', Monaco, 'Courier New', monospace;
+  font-size: 0.75rem;
+  color: #888;
+  background: #f5f5f5;
+  padding: 0.5rem 0.75rem;
+  border-radius: 4px;
+  margin-bottom: 1rem;
+  border-left: 3px solid #ddd;
+}
+
 .templateWrapper {
   transition: opacity 0.2s ease;
 }

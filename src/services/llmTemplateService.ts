@@ -1,4 +1,10 @@
 import { SearchResult, TemplateType, ControllerType, ResultType } from '@/types';
+import OpenAI from 'openai';
+
+// OpenAI 클라이언트 초기화
+const openai = new OpenAI({
+  apiKey: process.env.OPENAI_API_KEY,
+});
 
 // LLM 템플릿 결정 결과
 export interface LLMTemplateDecision {
@@ -200,24 +206,121 @@ function parseQueryIntent(query: string, searchResult: SearchResult): LLMTemplat
   };
 }
 
+// 시스템 프롬프트
+const SYSTEM_PROMPT = `당신은 검색 결과에 가장 적합한 UI 템플릿을 선택하는 전문가입니다.
+검색어와 결과를 분석하여 최적의 템플릿, 결과 타입, 필요한 컨트롤러를 JSON 형식으로 반환하세요.
+
+응답 형식 (반드시 이 JSON 형식으로만 응답):
+{
+  "template": "템플릿 이름",
+  "resultType": "결과 타입",
+  "controllers": ["컨트롤러1", "컨트롤러2"],
+  "reasoning": "선택 이유"
+}
+
+사용 가능한 템플릿:
+- shopping: 상품 목록 (가격, 평점, 할인 정보가 있는 제품)
+- map: 지도 기반 (장소, 위치, 맛집, 카페, 관광지)
+- weather: 날씨 정보 (날씨, 기온, 예보)
+- article: 기사 본문 (뉴스, 경제 기사, 상세 본문)
+- profile: 인물 프로필 (위키 스타일 인물 정보)
+- hero: 히어로 레이아웃 (메인 콘텐츠 + 사이드바, 뉴스/기사 목록)
+- gallery: 갤러리 (이미지 중심)
+- timeline: 타임라인 (이벤트, 일정)
+- carousel: 캐러셀 (슬라이드 형태)
+- grid: 그리드 (균일한 카드)
+- list: 리스트 (목록 형태)
+- card: 카드 레이아웃 (기본)
+
+사용 가능한 결과 타입:
+- products, locations, weather, news, people, images, events, videos, mixed
+
+사용 가능한 컨트롤러:
+- filter, sort, pagination, view-toggle, search-refine, date-range
+- price-range, brand-filter, rating-filter, discount-filter (쇼핑용)`;
+
+// LLM 응답 파싱
+function parseLLMResponse(content: string): LLMTemplateDecision | null {
+  try {
+    // JSON 블록 추출 (```json ... ``` 또는 순수 JSON)
+    const jsonMatch = content.match(/```json\s*([\s\S]*?)\s*```/) ||
+                      content.match(/\{[\s\S]*\}/);
+
+    if (!jsonMatch) {
+      console.error('[LLM Template Service] No JSON found in response');
+      return null;
+    }
+
+    const jsonStr = jsonMatch[1] || jsonMatch[0];
+    const parsed = JSON.parse(jsonStr);
+
+    // 유효성 검사
+    if (!parsed.template || !parsed.resultType) {
+      console.error('[LLM Template Service] Invalid response structure');
+      return null;
+    }
+
+    return {
+      template: parsed.template as TemplateType,
+      resultType: parsed.resultType as ResultType,
+      controllers: (parsed.controllers || []) as ControllerType[],
+      reasoning: parsed.reasoning || 'LLM 분석 완료',
+    };
+  } catch (error) {
+    console.error('[LLM Template Service] Parse error:', error);
+    return null;
+  }
+}
+
 // LLM 기반 템플릿 결정 (메인 함수)
 export async function decidetTemplateWithLLM(
   query: string,
   searchResult: SearchResult
 ): Promise<LLMTemplateDecision> {
-  // 실제 LLM API 호출 시뮬레이션
-  // 프로덕션에서는 OpenAI, Anthropic 등의 API를 호출
-
-  const prompt = buildPrompt(query, searchResult);
+  const userPrompt = buildPrompt(query, searchResult);
   console.log('[LLM Template Service] Analyzing query:', query);
-  console.log('[LLM Template Service] Prompt:', prompt);
 
-  // LLM 응답 시뮬레이션 (실제로는 API 호출)
-  const decision = parseQueryIntent(query, searchResult);
+  // API 키가 없으면 폴백 사용
+  if (!process.env.OPENAI_API_KEY) {
+    console.log('[LLM Template Service] No API key, using fallback');
+    return parseQueryIntent(query, searchResult);
+  }
 
-  console.log('[LLM Template Service] Decision:', decision);
+  try {
+    const response = await openai.chat.completions.create({
+      model: 'gpt-4o-mini',
+      messages: [
+        { role: 'system', content: SYSTEM_PROMPT },
+        { role: 'user', content: userPrompt },
+      ],
+      temperature: 0.3,
+      max_tokens: 500,
+    });
 
-  return decision;
+    const content = response.choices[0]?.message?.content;
+
+    if (!content) {
+      console.log('[LLM Template Service] Empty response, using fallback');
+      return parseQueryIntent(query, searchResult);
+    }
+
+    console.log('[LLM Template Service] LLM Response:', content);
+
+    const decision = parseLLMResponse(content);
+
+    if (!decision) {
+      console.log('[LLM Template Service] Parse failed, using fallback');
+      return parseQueryIntent(query, searchResult);
+    }
+
+    console.log('[LLM Template Service] Decision:', decision);
+    return decision;
+
+  } catch (error) {
+    console.error('[LLM Template Service] API error:', error);
+    // 에러 시 폴백 로직 사용
+    return parseQueryIntent(query, searchResult);
+  }
 }
 
 // 동기 버전 (캐시된 결과나 빠른 판단용)

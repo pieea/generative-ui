@@ -54,6 +54,18 @@ export function DynamicUIRenderer({
 
   const MainTemplateComponent = templateComponents[mainTemplate];
 
+  // rewrite 결과 추출
+  const rewriteResult = data.metadata?.rewriteResult as {
+    originalQuery: string;
+    expanded: boolean;
+    queries: { query: string; intent: string; description: string }[];
+  } | undefined;
+
+  // 디버그 문자열 생성
+  const debugInfo = rewriteResult
+    ? `[${rewriteResult.expanded ? '확장' : '단일'}] ${rewriteResult.queries.map(q => `"${q.query}"(${q.intent})`).join(' + ')} → 템플릿: ${mainTemplate}`
+    : `템플릿: ${mainTemplate}`;
+
   return (
     <div className={styles.dynamicUI}>
       {/* 검색 정보 헤더 */}
@@ -63,6 +75,11 @@ export function DynamicUIRenderer({
         <span className={styles.resultCount}>
           {data.totalCount}개의 결과
         </span>
+      </div>
+
+      {/* 디버그: 쿼리 분석 결과 */}
+      <div className={styles.debugInfo}>
+        {debugInfo}
       </div>
 
       {/* 컨트롤러 바 */}
