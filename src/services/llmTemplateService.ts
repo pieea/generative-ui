@@ -1,10 +1,29 @@
-import { SearchResult, TemplateType, ControllerType, ResultType } from '@/types';
+import { SearchResult, TemplateType, ControllerType, ResultType, SearchResultItem } from '@/types';
 import OpenAI from 'openai';
 
 // OpenAI 클라이언트 초기화
 const openai = new OpenAI({
   apiKey: process.env.OPENAI_API_KEY,
 });
+
+// 비인물 occupation 값 (국가, 기관, 회사 등)
+const NON_PERSON_OCCUPATIONS = ['국가', '회사', '기업', '단체', '기관', '조직', '브랜드', '도시', '지역'];
+
+// 실제 인물인지 확인
+function isActualPerson(item: SearchResultItem): boolean {
+  if (!item.metadata) return false;
+
+  const occupation = item.metadata.occupation;
+  if (occupation && typeof occupation === 'string') {
+    if (NON_PERSON_OCCUPATIONS.some(np => occupation.includes(np))) {
+      return false;
+    }
+    return true;
+  }
+
+  if (item.metadata.birthDate) return true;
+  return false;
+}
 
 // LLM 템플릿 결정 결과
 export interface LLMTemplateDecision {
@@ -50,32 +69,113 @@ ${JSON.stringify(itemSummary, null, 2)}
 `;
 }
 
+// data-dc/disp-attr 기반 템플릿 매핑 (영문 + 한글 키 모두 지원)
+const DATA_DC_TEMPLATE_MAP: Record<string, { template: TemplateType; resultType: ResultType; controllers: ControllerType[] }> = {
+  // 영문 키
+  'exchange': { template: 'exchange-rate', resultType: 'exchange', controllers: ['date-range', 'filter'] },
+  'country': { template: 'country', resultType: 'country', controllers: ['filter'] },
+  'events': { template: 'timeline', resultType: 'events', controllers: ['filter', 'date-range', 'sort'] },
+  'people': { template: 'profile', resultType: 'people', controllers: ['filter', 'sort', 'pagination'] },
+  'news': { template: 'hero', resultType: 'news', controllers: ['filter', 'sort', 'date-range', 'pagination'] },
+  'products': { template: 'shopping', resultType: 'products', controllers: ['price-range', 'brand-filter', 'rating-filter', 'discount-filter', 'sort', 'view-toggle', 'pagination'] },
+  'locations': { template: 'map', resultType: 'locations', controllers: ['filter', 'search-refine'] },
+  'weather': { template: 'weather', resultType: 'weather', controllers: ['date-range'] },
+  'images': { template: 'gallery', resultType: 'images', controllers: ['filter', 'view-toggle', 'pagination'] },
+  'videos': { template: 'gallery', resultType: 'images', controllers: ['filter', 'view-toggle', 'pagination'] },
+  // 한글 키 (LLM이 한글로 반환하는 경우 대응)
+  '환율': { template: 'exchange-rate', resultType: 'exchange', controllers: ['date-range', 'filter'] },
+  '국가': { template: 'country', resultType: 'country', controllers: ['filter'] },
+  '이벤트': { template: 'timeline', resultType: 'events', controllers: ['filter', 'date-range', 'sort'] },
+  '축제': { template: 'timeline', resultType: 'events', controllers: ['filter', 'date-range', 'sort'] },
+  '인물': { template: 'profile', resultType: 'people', controllers: ['filter', 'sort', 'pagination'] },
+  '뉴스': { template: 'hero', resultType: 'news', controllers: ['filter', 'sort', 'date-range', 'pagination'] },
+  '쇼핑': { template: 'shopping', resultType: 'products', controllers: ['price-range', 'brand-filter', 'rating-filter', 'discount-filter', 'sort', 'view-toggle', 'pagination'] },
+  '상품': { template: 'shopping', resultType: 'products', controllers: ['price-range', 'brand-filter', 'rating-filter', 'discount-filter', 'sort', 'view-toggle', 'pagination'] },
+  '장소': { template: 'map', resultType: 'locations', controllers: ['filter', 'search-refine'] },
+  '날씨': { template: 'weather', resultType: 'weather', controllers: ['date-range'] },
+  '이미지': { template: 'gallery', resultType: 'images', controllers: ['filter', 'view-toggle', 'pagination'] },
+  '동영상': { template: 'gallery', resultType: 'images', controllers: ['filter', 'view-toggle', 'pagination'] },
+};
+
 // LLM 응답 파싱 (시뮬레이션)
 function parseQueryIntent(query: string, searchResult: SearchResult): LLMTemplateDecision {
-  const queryLower = query.toLowerCase();
   const items = searchResult.items;
 
-  // 메타데이터 분석
+  // 0. data-dc/disp-attr 기반 primaryIntent 확인 (가장 우선)
+  const analysisIntent = searchResult.metadata?.analysis?.primaryIntent;
+  if (analysisIntent && DATA_DC_TEMPLATE_MAP[analysisIntent]) {
+    const mapping = DATA_DC_TEMPLATE_MAP[analysisIntent];
+    console.log(`[LLM Template] Using data-dc based intent: ${analysisIntent}`);
+
+    // 인물 검색의 경우 추가 로직 적용
+    if (analysisIntent === 'people') {
+      const personItems = items.filter(isActualPerson);
+      const newsItems = items.filter(i => i.category === '뉴스' || (i.timestamp && i.metadata?.source));
+
+      if (personItems.length === 2) {
+        const names = personItems.map(p => p.title);
+        const uniqueNames = new Set(names);
+        if (uniqueNames.size === 2) {
+          return {
+            template: 'dual-profile',
+            resultType: 'people',
+            controllers: ['filter', 'sort', 'date-range', 'pagination'],
+            reasoning: `[data-dc: PRF] 두 인물(${names.join(', ')}) + 관련 뉴스(${newsItems.length}건)로 dual-profile 템플릿 선택`
+          };
+        }
+      }
+
+      if (personItems.length > 0 && newsItems.length > 0) {
+        return {
+          template: 'hero',
+          resultType: 'people',
+          controllers: ['filter', 'sort', 'date-range', 'pagination'],
+          reasoning: `[data-dc: PRF] 인물 프로필(${personItems.length}건) + 관련 뉴스(${newsItems.length}건) 복합 검색으로 hero 템플릿 선택`
+        };
+      }
+
+      if (personItems.length === 1) {
+        return {
+          template: 'profile',
+          resultType: 'people',
+          controllers: ['filter', 'sort', 'pagination'],
+          reasoning: `[data-dc: PRF] 단일 인물 정보가 감지되어 profile 템플릿 선택`
+        };
+      }
+    }
+
+    // 뉴스 검색의 경우 기사 개수에 따라 템플릿 조정
+    if (analysisIntent === 'news' && items.length === 1) {
+      return {
+        template: 'article',
+        resultType: 'news',
+        controllers: ['filter', 'sort', 'date-range', 'pagination'],
+        reasoning: `[data-dc: DNS] 단일 기사로 article 템플릿 선택`
+      };
+    }
+
+    return {
+      ...mapping,
+      reasoning: `[data-dc: ${analysisIntent}] ${analysisIntent} 컴포넌트가 감지되어 ${mapping.template} 템플릿 선택`
+    };
+  }
+
+  // 1. 메타데이터 기반 판단 (폴백)
   const hasPrice = items.some(item => item.metadata && 'price' in item.metadata);
   const hasRating = items.some(item => item.metadata && 'rating' in item.metadata);
   const hasCondition = items.some(item => item.metadata && 'condition' in item.metadata);
   const hasAddress = items.some(item => item.metadata && 'address' in item.metadata);
-  const hasBio = items.some(item => item.metadata && ('birthDate' in item.metadata || 'occupation' in item.metadata));
+  const hasBio = items.some(isActualPerson);
   const hasBody = items.some(item => item.metadata && 'body' in item.metadata);
   const hasExchangeRate = items.some(item => item.metadata && 'currencyCode' in item.metadata);
-  const isExchangeQuery = queryLower.includes('환율') || queryLower.includes('달러') || queryLower.includes('엔화') || queryLower.includes('유로');
 
-  // 1. 메타데이터 기반 판단 (가장 정확)
-
-  // 환율 데이터가 있거나 환율 관련 쿼리인 경우
-  if (hasExchangeRate || isExchangeQuery || items.some(i => i.category === '환율')) {
+  // 환율 데이터가 있는 경우
+  if (hasExchangeRate || items.some(i => i.category === '환율')) {
     return {
       template: 'exchange-rate',
       resultType: 'exchange',
       controllers: ['date-range', 'filter'],
-      reasoning: hasExchangeRate
-        ? '환율 데이터(currencyCode)가 감지되어 exchange-rate 템플릿 선택'
-        : '환율 관련 쿼리로 exchange-rate 템플릿 선택'
+      reasoning: '환율 데이터(currencyCode)가 감지되어 exchange-rate 템플릿 선택'
     };
   }
 
@@ -109,7 +209,7 @@ function parseQueryIntent(query: string, searchResult: SearchResult): LLMTemplat
   // 인물 정보가 있는 경우
   if (hasBio) {
     // 인물 카테고리 아이템과 뉴스 아이템 분리
-    const personItems = items.filter(i => i.category === '인물' || i.metadata?.occupation);
+    const personItems = items.filter(isActualPerson);
     const newsItems = items.filter(i => i.category === '뉴스' || (i.timestamp && i.metadata?.source));
 
     // 2명의 서로 다른 인물이 있는 경우 → dual-profile 템플릿
@@ -165,77 +265,8 @@ function parseQueryIntent(query: string, searchResult: SearchResult): LLMTemplat
     };
   }
 
-  // 2. 쿼리 의도 분석 (자연어 이해)
-  const shoppingIntents = [
-    '추천', '가성비', '비교', '리뷰', '후기', '최저가', '할인', '구매', '쇼핑',
-    '노트북', '태블릿', '스마트폰', '핸드폰', '휴대폰', '아이폰', '갤럭시', '아이패드',
-    '이어폰', '헤드폰', '에어팟', '버즈', '무선',
-    '모니터', '키보드', '마우스', 'tv', '냉장고', '세탁기', '에어컨', '청소기',
-    '카메라', '렌즈', '게이밍', '그래픽카드', 'ssd', '메모리', '가격'
-  ];
-
-  const locationIntents = [
-    '맛집', '카페', '음식점', '식당', '레스토랑', '베이커리', '브런치',
-    '관광지', '명소', '볼거리', '여행', '숙소', '호텔', '펜션',
-    '공원', '박물관', '미술관', '서점',
-    '서울', '제주', '강남', '홍대', '이태원', '부산', '경주', '전주', '속초'
-  ];
-
-  const weatherIntents = ['날씨', '기온', '온도', '비', '눈', '맑음', '흐림', '일기예보', '기상', '미세먼지'];
-
-  const newsIntents = ['뉴스', '기사', '속보', '경제', '금융', '주식', '증시', '환율'];
-
-  const peopleIntents = ['ceo', '배우', '가수', '인물', '감독', '작가', '선수'];
-
-  // 의도 매칭
-  if (shoppingIntents.some(intent => queryLower.includes(intent))) {
-    return {
-      template: 'shopping',
-      resultType: 'products',
-      controllers: ['price-range', 'brand-filter', 'rating-filter', 'discount-filter', 'sort', 'view-toggle', 'pagination'],
-      reasoning: `쿼리에서 쇼핑/상품 관련 의도 감지: "${query}"`
-    };
-  }
-
-  if (locationIntents.some(intent => queryLower.includes(intent))) {
-    return {
-      template: 'map',
-      resultType: 'locations',
-      controllers: ['filter', 'search-refine'],
-      reasoning: `쿼리에서 장소/위치 관련 의도 감지: "${query}"`
-    };
-  }
-
-  if (weatherIntents.some(intent => queryLower.includes(intent))) {
-    return {
-      template: 'weather',
-      resultType: 'mixed',
-      controllers: [],
-      reasoning: `쿼리에서 날씨 관련 의도 감지: "${query}"`
-    };
-  }
-
-  if (newsIntents.some(intent => queryLower.includes(intent))) {
-    const template = items.length === 1 ? 'article' : 'hero';
-    return {
-      template,
-      resultType: 'news',
-      controllers: ['filter', 'sort', 'date-range', 'pagination'],
-      reasoning: `쿼리에서 뉴스/기사 관련 의도 감지: "${query}"`
-    };
-  }
-
-  if (peopleIntents.some(intent => queryLower.includes(intent))) {
-    const template = items.length === 1 ? 'profile' : 'grid';
-    return {
-      template,
-      resultType: 'people',
-      controllers: ['filter', 'sort', 'pagination'],
-      reasoning: `쿼리에서 인물 관련 의도 감지: "${query}"`
-    };
-  }
-
-  // 3. 기본값: 이미지 유무와 결과 수에 따라 결정
+  // 2. 기본 폴백 (data-dc가 없고 메타데이터도 없는 경우)
+  // 이미지 유무와 결과 수에 따라 결정
   const hasImages = items.some(item => item.imageUrl);
 
   if (hasImages && items.length >= 6) {

@@ -16,6 +16,7 @@ import {
   WeatherTemplate,
   ShoppingTemplate,
   ExchangeRateTemplate,
+  CountryTemplate,
 } from '@/templates';
 import { ControllerBar } from './ControllerBar';
 import { FeedbackInput } from './FeedbackInput';
@@ -43,6 +44,7 @@ const templateComponents: Record<TemplateType, React.ComponentType<any>> = {
   weather: WeatherTemplate,    // 날씨 정보
   shopping: ShoppingTemplate,  // 쇼핑/상품 목록
   'exchange-rate': ExchangeRateTemplate, // 환율 정보
+  country: CountryTemplate,    // 국가 정보
   table: ListTemplate,         // fallback
   comparison: CarouselTemplate, // 비교는 캐러셀로
   detail: ProfileTemplate,     // 상세는 프로필로

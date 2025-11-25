@@ -190,7 +190,7 @@ export function ExchangeRateTemplate({ data, layout }: TemplateProps) {
                   )}
                 </h4>
                 <div className={styles.exchangeNewsMeta}>
-                  {item.metadata?.source && (
+                  {item.metadata?.source !== undefined && (
                     <span className={styles.exchangeNewsSource}>
                       {String(item.metadata.source)}
                     </span>

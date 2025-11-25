@@ -1,4 +1,5 @@
 import OpenAI from 'openai';
+import { IntentType } from '@/types';
 
 // OpenAI 클라이언트 초기화
 const openai = new OpenAI({
@@ -6,7 +7,7 @@ const openai = new OpenAI({
 });
 
 // 검색 의도 타입
-export type SearchIntent = 'products' | 'locations' | 'weather' | 'news' | 'people' | 'images' | 'events' | 'documents' | 'mixed';
+export type SearchIntent = IntentType;
 
 // 확장된 쿼리 인터페이스
 export interface ExpandedQuery {

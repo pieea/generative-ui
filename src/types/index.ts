@@ -13,6 +13,7 @@ export type TemplateType =
   | 'weather'        // 날씨 정보 형태
   | 'shopping'       // 쇼핑/상품 목록 형태
   | 'exchange-rate'  // 환율 정보 형태
+  | 'country'        // 국가 정보 형태
   | 'table'          // 테이블 형태
   | 'comparison'     // 비교 형태
   | 'detail'         // 상세 정보 형태
@@ -84,7 +85,14 @@ export type ResultType =
   | 'documents'      // 문서
   | 'weather'        // 날씨
   | 'exchange'       // 환율
+  | 'country'        // 국가 정보
+  | 'videos'         // 동영상
+  | 'web'            // 웹문서
+  | 'ads'            // 광고
   | 'mixed';         // 혼합 결과
+
+// 검색 의도 타입 (ResultType와 동일)
+export type IntentType = ResultType;
 
 // UI 상태
 export interface UIState {
@@ -134,6 +142,7 @@ export interface CacheKey {
 export interface GenerateUIResponse {
   uiState: UIState;
   cacheHit: boolean;
+  cacheTTL?: number; // 남은 캐시 TTL (초)
 }
 
 // 템플릿 컴포넌트 props

@@ -7,21 +7,41 @@ const openai = new OpenAI({
   apiKey: process.env.OPENAI_API_KEY,
 });
 
+// 비인물 occupation 값 (국가, 기관, 회사 등)
+const NON_PERSON_OCCUPATIONS = ['국가', '회사', '기업', '단체', '기관', '조직', '브랜드', '도시', '지역'];
+
+// 실제 인물인지 확인
+function isActualPerson(item: SearchResultItem): boolean {
+  if (!item.metadata) return false;
+
+  const occupation = item.metadata.occupation;
+  if (occupation && typeof occupation === 'string') {
+    // 비인물 occupation이면 제외
+    if (NON_PERSON_OCCUPATIONS.some(np => occupation.includes(np))) {
+      return false;
+    }
+    return true;
+  }
+
+  // birthDate가 있으면 인물로 간주
+  if (item.metadata.birthDate) return true;
+
+  return false;
+}
+
 // 검색 결과 타입 분류 (메타데이터 기반)
 export function classifyResultType(query: string, items: SearchResultItem[]): ResultType {
   const hasPrice = items.some((item) => item.metadata && 'price' in item.metadata);
   const hasRating = items.some((item) => item.metadata && 'rating' in item.metadata);
   const hasAddress = items.some((item) => item.metadata && 'address' in item.metadata);
   const hasCondition = items.some((item) => item.metadata && 'condition' in item.metadata);
-  const hasBio = items.some((item) => item.metadata && ('birthDate' in item.metadata || 'occupation' in item.metadata));
+  const hasBio = items.some(isActualPerson);
   const hasExchangeRate = items.some((item) => item.metadata && 'currencyCode' in item.metadata);
+  const hasCountryInfo = items.some((item) => item.category === '국가' || (item.metadata && 'countryCode' in item.metadata && 'capital' in item.metadata));
 
-  // 환율 관련 쿼리 키워드 확인
-  const queryLower = query.toLowerCase();
-  const isExchangeQuery = queryLower.includes('환율') || queryLower.includes('달러') ||
-    queryLower.includes('엔화') || queryLower.includes('유로') || queryLower.includes('환전');
-
-  if (hasExchangeRate || isExchangeQuery) return 'exchange';
+  // 국가 정보가 있으면 country 타입 반환
+  if (hasCountryInfo) return 'country';
+  if (hasExchangeRate) return 'exchange';
   if (hasCondition) return 'weather';
   if (hasPrice && hasRating) return 'products';
   if (hasAddress) return 'locations';
@@ -337,13 +357,17 @@ export async function performSearch(query: string): Promise<SearchResult> {
     };
   }
 
-  // 3. 결과 타입 분류
+  // 3. 결과 타입 분류 - primaryIntent (data-dc 기반)를 우선 사용
   // 디버그: 인물 관련 메타데이터 확인
   const peopleItems = items.filter(i => i.metadata && ('occupation' in i.metadata || 'birthDate' in i.metadata));
   console.log('[Search Service] People items found:', peopleItems.length, peopleItems.map(i => ({ title: i.title, occupation: i.metadata?.occupation })));
 
-  const resultType = classifyResultType(query, items);
-  console.log('[Search Service] Final resultType:', resultType);
+  // primaryIntent가 유효하면 그대로 사용 (data-dc 기반)
+  const validIntents: ResultType[] = ['news', 'products', 'images', 'locations', 'events', 'people', 'documents', 'weather', 'exchange', 'country', 'mixed'];
+  const resultType = validIntents.includes(analysisMetadata.primaryIntent as ResultType)
+    ? (analysisMetadata.primaryIntent as ResultType)
+    : classifyResultType(query, items);  // 폴백
+  console.log('[Search Service] Final resultType:', resultType, '(from:', validIntents.includes(analysisMetadata.primaryIntent as ResultType) ? 'data-dc' : 'fallback', ')');
 
   return {
     query,

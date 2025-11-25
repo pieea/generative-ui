@@ -27,8 +27,8 @@ const exampleQueries: Record<ResultType, { label: string; queries: string[] }> =
     queries: ['강남역 맛집', '제주도 카페', '서울 관광지'],
   },
   events: {
-    label: '이벤트',
-    queries: ['이번 주 축제 일정', '콘서트 행사', '전시회 이벤트'],
+    label: '축제/행사',
+    queries: ['이번주 축제일정', '서울 콘서트 일정', '전시회 박람회'],
   },
   people: {
     label: '인물',
@@ -42,9 +42,29 @@ const exampleQueries: Record<ResultType, { label: string; queries: string[] }> =
     label: '날씨',
     queries: ['서울 날씨', '이번 주 날씨', '주말 날씨 예보'],
   },
+  exchange: {
+    label: '환율',
+    queries: ['오늘 달러 환율', '엔화 환율', '유로 환율'],
+  },
+  country: {
+    label: '국가',
+    queries: ['미국', '일본', '프랑스'],
+  },
+  videos: {
+    label: '동영상',
+    queries: ['강아지 영상', '요리 레시피 영상', '운동 영상'],
+  },
+  web: {
+    label: '웹문서',
+    queries: ['TypeScript 튜토리얼', 'React 가이드', 'Next.js 문서'],
+  },
+  ads: {
+    label: '광고',
+    queries: [],
+  },
   mixed: {
     label: '일반',
-    queries: ['환율 조회', '오늘의 운세', '주식 시세'],
+    queries: ['오늘의 운세', '주식 시세', '로또 번호'],
   },
 };
 

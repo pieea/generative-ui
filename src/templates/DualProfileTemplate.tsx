@@ -113,7 +113,7 @@ export function DualProfileTemplate({ data, layout }: TemplateProps) {
                     )}
                   </h4>
                   <div className={styles.dualProfileNewsMeta}>
-                    {item.metadata?.source && (
+                    {item.metadata?.source !== undefined && (
                       <span className={styles.dualProfileNewsSource}>
                         {String(item.metadata.source)}
                       </span>
